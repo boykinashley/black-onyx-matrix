@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 
+CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSd_xrC4SZeJ_KKdt0wAFUPcTZqZo0MjN8Ifhwq090eqg3PLaCXU2XukTlLEW4sVM7GCnOf-Kmqzlwy/pub?output=csv"
+
 # Set up clean, elite corporate styling
 st.set_page_config(page_title="Black Onyx | Sourcing Matrix", page_icon="🦅", layout="wide")
 
