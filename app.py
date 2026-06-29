@@ -283,3 +283,75 @@ if sync_trigger:
             st.write("**Mandatory Action Directive:** Bypassing traditional sun-drying methods immediately. Move all coffee fruit material into sealed, anaerobic environments to protect upcycling value streams.")
         else:
             st.success("🍏 **CLIMATE PROFILE REGULATED:** Synced variables confirm clean, low-risk conditions across tracked forest parcels.")
+
+# ==============================================================================
+# SUB-MODULE 4: U.S. EXPORT CAPITAL & MENTORSHIP MATRIX (COMPLETE SUITE)
+# ==============================================================================
+elif today_menu == "4. U.S. Export Capital & Mentorship Matrix":
+    st.title("🏛️ U.S. Federal Export Capital & Global Mentorship Matrix")
+    st.write("Leveraging federal infrastructure and elite international trade desks specifically engineered to scale women-owned international corporate brokerages [📑].")
+    
+    st.info("💡 **Executive Strategy:** Use your live Streamlit dashboard metrics and ground-truth data logs from Chiang Rai as verified proof of concept when submitting applications to these federal desks [📑, 📑].")
+    
+    # Capital Program Selector Tabs
+    tab_step, tab_exim, tab_owit, tab_pitch = st.tabs([
+        "💵 1. SBA STEP Grant", 
+        "🛡️ 2. EXIM Bank (MWOB)", 
+        "👑 3. OWIT Network", 
+        "📢 4. Your Executive Pitch Statement"
+    ])
+    
+    with tab_step:
+        st.subheader("The State Trade Expansion Program (STEP) Grant")
+        st.write("**Funding Source:** U.S. Small Business Administration (SBA) / Home State Trade Desks (e.g., Colorado OEDIT) [📑].")
+        st.success("💰 **Capital Inflow:** Up to $5,000 – $10,000 per fiscal year in **non-dilutive cash grants** [📑].")
+        st.markdown("""
+        *   **Allocation Scope:** Explicitly subsidizes market entry and travel verification costs for U.S. small business exporters [📑].
+        *   **Covered Capital Items:** International trade mission flights, international shipping of sample boxes, and foreign market trade show registrations [📑, 📑]. 
+        *   **Action Plan:** Navigate to your home state's Department of Economic Development portal and file under 'STEP Grant Open Window' [📑].
+        """)
+        
+    with tab_exim:
+        st.subheader("Export-Import Bank of the United States — Minority & Women-Owned Business (MWOB) Desk")
+        st.write("**Agency Function:** Provides Export Credit Insurance to protect U.S. corporate brokerages from international transaction defaults [📑].")
+        st.success("🔒 **Risk Shield:** Insures up to **95% of your outbound commercial invoices** against foreign buyer or geopolitical default [📑].")
+        st.markdown("""
+        *   **The Operational Value:** Removes financial transactional anxiety [📑]. If a verified Western buyer defaults on your brokerage commission fee, the U.S. Federal Government steps in to settle your invoice [📑]. 
+        *   **The Mentorship Pipeline:** Registrants are assigned a specialized MWOB trade director who acts as an operational mentor to audit ledgers and clear international banking hurdles [📑].
+        *   **Action Plan:** Register for an onboarding briefing directly via `exim.gov/about/minority-and-women-owned-businesses`.
+        """)
+        
+    with tab_owit:
+        st.subheader("Organization of Women in International Trade (OWIT)")
+        st.write("**Network Scope:** The premier global professional network connecting elite female trade executives, port logistics directors, and customs attorneys [📑].")
+        st.success("👑 **Network Capital:** Direct 1-on-1 cross-border mentorship channels across the U.S., Asia, and Africa [📑].")
+        st.markdown("""
+        *   **The Boardroom Panel:** Gives you an active community of industry experts to consult whenever you hit a border clearance bottleneck, phytosanitary restriction, or ocean freight hazard [📑].
+        *   **Action Plan:** Establish your active global profile credentials through `owit.org`.
+        """)
+        
+    with tab_pitch:
+        st.subheader("📢 Your Master Executive Positioning Statement")
+        st.write("Copy and paste this verified text block into your federal grant applications, accelerator pitches, and OWIT board profiles to cleanly align your frontier research with corporate scale [📑]:")
+        
+        pitch_text = (
+            "As a U.S. woman pioneering an international trade advisory firm (Black Onyx Advisory), my mission is to architect "
+            "high-margin, risk-mitigated supply chain corridors [📑, 📑]. Following my enterprise strategy career at Accenture, I self-funded "
+            "an intensive global technology and commodities circuit spanning Japan, South Korea, Singapore, and South Africa to master "
+            "automated data structures and border compliance frameworks [📑].\n\n"
+            "I then embedded myself directly at origin within the remote watersheds of Northern Thailand to stress-test a direct-trade "
+            "pipeline [📑]. Confronted with systemic local transparency blockages and middleman manipulation, I used my systems background "
+            "to rapidly prototype a serverless data-pull application using GitHub and Streamlit to enforce zero-trust data-vetting [📑, 📑].\n\n"
+            "Recognizing the severe agronomic and behavioral bottlenecks affecting local farmers, I pivoted our model into a Circular "
+            "Bioeconomy Waste-Valorization Corridor [📑]. I negotiated a framework to upcycle low-grade agricultural biowaste into cosmetic "
+            "ingredients in collaboration with public university laboratories, while routing resource premiums directly to secure the legal "
+            "IDs and education of stateless youth through BIFA and YWAM [📑, 📑].\n\n"
+            "While my technical and strategic frameworks are fully live, I am seeking institutional mentorship and export development funding "
+            "to scale this architecture safely [📑]. I want to connect with seasoned international trade professionals to align our outbound "
+            "compliance channels with federal standards as we expand this zero-waste corridor model into low-friction agricultural sectors "
+            "across East Africa and Central America [📑]."
+        )
+        
+        # Unique key identifier passed to ensure clean compilation
+        st.text_area(label="Click inside the box to copy your pitch text:", value=pitch_text, height=350, key="executive_pitch_text_area")
+        st.success("🎯 This statement reframes your 7-month sabbatical into a high-stakes corporate asset that protects your business parameters while validating your social impact alignment under Planted by Grace.")
