@@ -124,10 +124,37 @@ today_menu = st.sidebar.radio("MACRO ADVISORY ENGINE", [
 ])
 
 # ==============================================================================
+# TODAY'S MODULES: SYSTEM ARCHITECTURE & SOVEREIGN LIFECYCLE MONITORING
+# ==============================================================================
+
+# Fixed: Changed invalid 'unsafe_index=True' to correct 'unsafe_allow_html=True'
+st.markdown("""
+    <style>
+    .macro-advisory-title { font-size:24px !important; font-weight: bold; color: #4A3B32; background-color: #F4EBE1; padding: 12px; border-radius: 8px; border-left: 6px solid #8B5A2B; margin-top: 25px; margin-bottom: 15px;}
+    .cultural-elevation-card { padding: 18px; border-radius: 8px; background-color: #E6F4EA; border-left: 5px solid #24B45C; margin-bottom: 20px; line-height: 1.6; }
+    .vulnerability-card-now { padding: 15px; border-radius: 8px; background-color: #FDF6E2; border-left: 5px solid #D9822B; margin-bottom: 15px; }
+    .vulnerability-card-future { padding: 15px; border-radius: 8px; background-color: #EBF7EE; border-left: 5px solid #2E7D32; margin-bottom: 15px; }
+    .financial-metric-box { padding: 15px; border-radius: 8px; background-color: #F8F9FA; border-left: 5px solid #6D4C41; margin-bottom: 12px; font-size: 15px; }
+    .chronic-deficit-box { padding: 15px; border-radius: 8px; background-color: #FFF0F0; border-left: 5px solid #D32F2F; margin-bottom: 15px; font-size: 15px; }
+    .sovereign-insurance-box { padding: 18px; border-radius: 8px; background-color: #E8F0FE; border-left: 5px solid #1976D2; margin-bottom: 20px; }
+    </style>
+    """, unsafe_allow_html=True)
+
+# Append today's new navigation sub-menu directly to your existing sidebar logic
+st.sidebar.markdown("---")
+st.sidebar.subheader("📅 Today's Systems Modules")
+today_menu = st.sidebar.radio("MACRO ADVISORY ENGINE", [
+    "Select a Current System Node...",
+    "1. Financial Literacy Mirror",
+    "2. End-to-End Lifecycle Map",
+    "3. Sovereign Hub & Global Insurance"
+])
+
+# ==============================================================================
 # SUB-MODULE 1: FINANCIAL LITERACY & CHRONIC SURVIVAL GAP MODELING
 # ==============================================================================
 if today_menu == "1. Financial Literacy Mirror":
-    st.markdown("<p class='macro-advisory-title'>📊 The Financial Literacy Mirror: Survival Gap Diagnosis</p>", unsafe_index=True)
+    st.markdown("<p class='macro-advisory-title'>📊 The Financial Literacy Mirror: Survival Gap Diagnosis</p>", unsafe_allow_html=True)
     st.write("Translating the middleman's pressure metrics into an objective reality. Novice buyers look only at the green bean, but the true wealth is hidden inside the chemistry of the red fruit.")
     
     col1, col2 = st.columns(2)
@@ -149,14 +176,14 @@ if today_menu == "1. Financial Literacy Mirror":
 
     with col2:
         st.write("#### 📊 Diagnostic Financial Output")
-        st.markdown(f"<div class='financial-metric-box'><b>Total Cash Payout Received from Middleman:</b> ฿{middleman_gross_payout:,.2f} THB</div>", unsafe_index=True)
+        st.markdown(f"<div class='financial-metric-box'><b>Total Cash Payout Received from Middleman:</b> ฿{middleman_gross_payout:,.2f} THB</div>", unsafe_allow_html=True)
         
         if household_survival_gap < 0:
-            st.markdown(f"<div class='chronic-deficit-box'><b>🚨 CHRONIC SURVIVAL DEFICIT DETECTED: -฿{abs(household_survival_gap):,.2f} THB</b><br>Your current traditional habits guarantee an operational deficit. This structural deficit is what forces your household to accept high-interest, rainy-season cash advances from middlemen, keeping you locked in permanent bondage.</div>", unsafe_index=True)
+            st.markdown(f"<div class='chronic-deficit-box'><b>🚨 CHRONIC SURVIVAL DEFICIT DETECTED: -฿{abs(household_survival_gap):,.2f} THB</b><br>Your current traditional habits guarantee an operational deficit. This structural deficit is what forces your household to accept high-interest, rainy-season cash advances from middlemen, keeping you locked in permanent bondage.</div>", unsafe_allow_html=True)
         else:
-            st.markdown(f"<div class='financial-metric-box'><b>Barely Surviving (Breakeven Runway):</b> ฿{household_survival_gap:,.2f} THB</div>", unsafe_index=True)
+            st.markdown(f"<div class='financial-metric-box'><b>Barely Surviving (Breakeven Runway):</b> ฿{household_survival_gap:,.2f} THB</div>", unsafe_allow_html=True)
         
-        st.markdown(f"<div class='vulnerability-card-future'><b>🌟 Premium Controlled-Input Value Potential:</b> ฿{true_potential_valuation:,.2f} THB<br><b>Net Economic Family Surplus:</b> ฿{net_advisory_surplus:,.2f} THB</div>", unsafe_index=True)
+        st.markdown(f"<div class='vulnerability-card-future'><b>🌟 Premium Controlled-Input Value Potential:</b> ฿{true_potential_valuation:,.2f} THB<br><b>Net Economic Family Surplus:</b> ฿{net_advisory_surplus:,.2f} THB</div>", unsafe_allow_html=True)
         
     # Visual Financial Continuum Chart
     st.bar_chart(pd.DataFrame({
@@ -168,16 +195,16 @@ if today_menu == "1. Financial Literacy Mirror":
 # SUB-MODULE 2: END-TO-END SUPPLY CHAIN MAP (WEATHER ANOMALY INTERVENTIONS)
 # ==============================================================================
 elif today_menu == "2. End-to-End Lifecycle Map":
-    st.markdown("<p class='macro-advisory-title'>🗺️ End-to-End Proactive Climate Lifecycle Mapping</p>", unsafe_index=True)
+    st.markdown("<p class='macro-advisory-title'>🗺️ End-to-End Proactive Climate Lifecycle Mapping</p>", unsafe_allow_html=True)
     st.write("Tracking correct proactive agricultural interventions to prevent reactive weather disasters (mold, rot, over-drying) before the green bean reveals itself.")
     
-    st.markdown("<p class='cultural-header'>🌱 Section A: Honor the Labor, Elevate the Legacy</p>", unsafe_index=True)
+    st.markdown("<p class='cultural-header'>🌱 Section A: Honor the Labor, Elevate the Legacy</p>", unsafe_allow_html=True)
     st.markdown("""
     <div class='cultural-elevation-card'>
         <b>Institutional Scripting for Field Agents to Bypass Defensive Pride:</b><br>
         <i>"We deeply respect the multi-generational endurance and meticulous care your family has poured into keeping this mountain fertile. You have mastered the forest. Our mission is to hand you an analytical data shield to protect, enhance, and reveal the true hidden financial worth of the blood-red fruit you are already harvesting."</i>
     </div>
-    """, unsafe_index=True)
+    """, unsafe_allow_html=True)
     
     st.write("## 🔄 Visual Evolution: Traditional Vulnerability vs. Enhanced Precision")
     active_lifecycle_phase = st.selectbox("Select Target Supply Chain Phase to Audit:", [
@@ -189,9 +216,9 @@ elif today_menu == "2. End-to-End Lifecycle Map":
     if active_lifecycle_phase == "Phase 1: Pre-Agro Land Prep & Canopy Management":
         col1, col2 = st.columns(2)
         with col1:
-            st.markdown("<div class='vulnerability-card-now'><b>Current Traditional Practice</b><br>• Relying strictly on unmonitored shade canopies.<br>• Highly reactive to unexpected regional heatwaves.<br><b>Market Output:</b> Low-grade commercial options only.</div>", unsafe_index=True)
+            st.markdown("<div class='vulnerability-card-now'><b>Current Traditional Practice</b><br>• Relying strictly on unmonitored shade canopies.<br>• Highly reactive to unexpected regional heatwaves.<br><b>Market Output:</b> Low-grade commercial options only.</div>", unsafe_allow_html=True)
         with col2:
-            st.markdown("<div class='vulnerability-card-future'><b>The Enhanced Precision Path</b><br>• Integrating automated macro-climate telemetry nodes.<br>• Shaded agroforestry slows down maturation, maximizing sugars inside the red fruit.<br><b>Financial Boost:</b> Adds <b>+฿15,000 THB</b> in protected yield value.</div>", unsafe_index=True)
+            st.markdown("<div class='vulnerability-card-future'><b>The Enhanced Precision Path</b><br>• Integrating automated macro-climate telemetry nodes.<br>• Shaded agroforestry slows down maturation, maximizing sugars inside the red fruit.<br><b>Financial Boost:</b> Adds <b>+฿15,000 THB</b> in protected yield value.</div>", unsafe_allow_html=True)
             
     elif active_lifecycle_phase == "Phase 2: Crop Lifecycle & Understory Moisture Monitoring":
         col1, col2 = st.columns(2)
@@ -202,16 +229,17 @@ elif today_menu == "2. End-to-End Lifecycle Map":
         with col2:
             st.write("#### 🛡️ Microclimate Advisory Action")
             if current_humidity > 80 and pruning_executed == "No":
-                st.markdown("<div class='danger-box'>🚨 <b>CRITICAL MOLD DEVELOPMENT HAZARD:</b> Trapped moisture cages will cause immediate fruit rot on branches, ruining your upcycling grain value. Airflow thinning must be executed immediately.</div>", unsafe_index=True)
+                st.markdown("<div class='danger-box'>🚨 <b>CRITICAL MOLD DEVELOPMENT HAZARD:</b> Trapped moisture cages will cause immediate fruit rot on branches, ruining your upcycling grain value. Airflow thinning must be executed immediately.</div>", unsafe_allow_html=True)
             else:
-                st.markdown("<div class='vulnerability-card-future'>🍏 <b>STABLE MICROCLIMATE CORRIDOR:</b> Airflow management parameters are successfully balancing moisture. Upcycle streams secure.</div>", unsafe_index=True)
+                st.markdown("<div class='vulnerability-card-future'>🍏 <b>STABLE MICROCLIMATE CORRIDOR:</b> Airflow management parameters are successfully balancing moisture. Upcycle streams secure.</div>", unsafe_allow_html=True)
                 
     elif active_lifecycle_phase == "Phase 3: Harvest Period & Visual Fruit Selection":
         col1, col2 = st.columns(2)
         with col1:
-            st.markdown("<div class='vulnerability-card-now'><b>Current Traditional Practice</b><br>• Strip-picking all colors mixed into single bags out of operational speed.<br>• Blending perfect red fruit with green/black defects, creating the 'Blended Rate Penalty'.<br><b>Realized Local Rate:</b> ~฿150 THB / kg</div>", unsafe_index=True)
+            st.markdown("<div class='vulnerability-card-now'><b>Current Traditional Practice</b><br>• Strip-picking all colors mixed into single bags out of operational speed.<br>• Blending perfect red fruit with green/black defects, creating the 'Blended Rate Penalty'.<br><b>Realized Local Rate:</b> ~฿150 THB / kg</div>", unsafe_allow_html=True)
         with col2:
-            st.markdown("<div class='vulnerability-card-future'><b>The Enhanced Precision Path</b><br>• Utilizing visual fruit color sorting grids directly on the farm plots.<br>• Farm-level water bucket flotation to isolate premium lots from defects prior to transit.<br><b>Realized Trade Rate:</b> ฿350 THB/kg (Commercial) up to <b>฿1,800+ THB/kg</b> (Elite Microlot Tier).</div>", unsafe_index=True)
+            st.markdown("<div class='vulnerability-card-future'><b>The Enhanced Precision Path</b><br>• Utilizing visual fruit color sorting grids directly on the farm plots.<br>• Farm-level water bucket flotation to isolate premium lots from defects prior to transit.<br><b>Realized Trade Rate:</b> ฿350 THB/kg (Commercial) up to <b>฿1,800+ THB/kg</b> (Elite Microlot Tier).</div>", unsafe_allow_html=True)
 
 # ==============================================================================
 # SUB-MODULE 3: SOVEREIGN HUB PIPELINE & STATELESS GLOBAL CROP INSURANCE
+# ==============================================================================
