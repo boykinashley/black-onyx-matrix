@@ -106,8 +106,9 @@ today_menu = st.sidebar.radio("MACRO ADVISORY ENGINE", [
     "Select a Current System Node...",
     "1. Financial Literacy Mirror",
     "2. End-to-End Lifecycle Map",
-    "3. Sovereign Hub & Global Insurance"
-])
+    "3. Sovereign Hub & Global Insurance",
+    "4. U.S. Export Capital & Mentorship Matrix" # <--- Ensure this line is present
+], key="macro_engine_radio")
 
 # ==============================================================================
 # SUB-MODULE 1: FINANCIAL LITERACY & CHRONIC SURVIVAL GAP MODELING
