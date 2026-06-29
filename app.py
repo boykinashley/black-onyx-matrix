@@ -219,3 +219,67 @@ elif today_menu == "3. Sovereign Hub & Global Insurance":
         
     elif weather_anomaly_simulation == "Sudden High-Altitude Frost / Thermal Shock Event":
         st.info("🔹 **AUTOMATED INSURANCE SHIELD TRIGGERED (Data-Verified)**\n\nCanopy sensors registered a severe temperature drop below 8°C.\n\n**Sovereign Liquidation Output:** Immediate financial payout of ฿40,000 THB executed via the data ledger to preserve land occupancy metrics and insulate the farmer from seasonal crop failure.")
+
+import streamlit as st
+import pandas as pd
+import numpy as np
+import time
+
+# ==============================================================================
+# REAL-TIME TELEMETRY DATA SYSTEM (EDGE & SATELLITE API MODELING)
+# ==============================================================================
+st.title("🛰️ Satellite IoT & Edge AI Telemetry Sync")
+st.write("### High-Altitude Agroforestry Corridor Precision Agriculture Tracker")
+st.caption("Advisory Framework: Simulating lightweight Edge AI processing and direct Satellite IoT packet extraction.")
+
+col_sync, col_data = st.columns([1, 2])
+
+with col_sync:
+    st.write("#### 📡 Ground-to-Space Connection Status")
+    st.warning("Cellular Reception Status: ❌ DEAD ZONE (No Local Signal)")
+    
+    # User initiates a simulated satellite packet handshake
+    sync_trigger = st.button("🔄 Sync Sat-IoT SBD Data Packets")
+    
+    st.write("#### ⚡ Onboard Hardware Protocol")
+    st.info("💡 **Edge Processing Mode:** On-field sensor nodes utilize compressed, lightweight predictive models to log understory humidity patterns completely offline without a cellular server link.")
+
+if sync_trigger:
+    with col_data:
+        st.write("#### 📥 Direct Satellite Transmission Stream")
+        status_text = st.empty()
+        progress_bar = st.progress(0)
+        
+        # Simulating the physical retrieval of a 1:1 data packet from space
+        for percent_complete in range(100):
+            time.sleep(0.01)
+            progress_bar.progress(percent_complete + 1)
+            status_text.text(f"Extracting Short Burst Data (SBD) packet... {percent_complete+1}%")
+            
+        status_text.text("✅ Data Handshake Complete. Metrics synced successfully via Satellite Corridor.")
+        
+        # Real-world historical microclimate ranges mapped out for Chiang Rai Highlands
+        simulated_time_series = pd.DataFrame({
+            "Time (Hourly Intervals)": [f"H-{i}" for i in range(12, 0, -1)],
+            "Canopy Temperature (°C)": np.random.uniform(16.5, 23.0, 12),
+            "Understory Humidity (%)": np.random.uniform(82.0, 96.5, 12),
+            "Leaf Wetness Index (AI-Vetted)": np.random.uniform(0.65, 0.92, 12)
+        })
+        
+        st.write("### 📊 Synced Multi-Layer Precision Dataset")
+        st.dataframe(simulated_time_series.style.format({
+            "Canopy Temperature (°C)": "{:.2f}",
+            "Understory Humidity (%)": "{:.2f}",
+            "Leaf Wetness Index (AI-Vetted)": "{:.2f}"
+        }))
+        
+        # Run real-time threshold check on the synced data to generate the mold alert
+        avg_humidity = simulated_time_series["Understory Humidity (%)"].mean()
+        avg_temp = simulated_time_series["Canopy Temperature (°C)"].mean()
+        
+        st.write("### 🚨 Precision Agriculture Automated Assessment")
+        if avg_humidity > 85.0 and avg_temp > 18.0:
+            st.error(f"⚠️ **CRITICAL PROCESSING SHOCK WARNING (Mean Humidity: {avg_humidity:.1f}%)**\n\nHigh-altitude canopy microclimate conditions indicate immediate Aspergillus and fungal spore development inside open storage arrays. Raw processing grains are at extreme risk of contamination.")
+            st.write("**Mandatory Action Directive:** Bypassing traditional sun-drying methods immediately. Move all coffee fruit material into sealed, anaerobic environments to protect upcycling value streams.")
+        else:
+            st.success("🍏 **CLIMATE PROFILE REGULATED:** Synced variables confirm clean, low-risk conditions across tracked forest parcels.")
