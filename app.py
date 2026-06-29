@@ -110,6 +110,20 @@ today_menu = st.sidebar.radio("MACRO ADVISORY ENGINE", [
 ])
 
 # ==============================================================================
+# TODAY'S MODULES: SYSTEM ARCHITECTURE & SOVEREIGN LIFECYCLE MONITORING
+# ==============================================================================
+
+# Append today's new navigation sub-menu directly to your existing sidebar logic
+st.sidebar.markdown("---")
+st.sidebar.subheader("📅 Today's Systems Modules")
+today_menu = st.sidebar.radio("MACRO ADVISORY ENGINE", [
+    "Select a Current System Node...",
+    "1. Financial Literacy Mirror",
+    "2. End-to-End Lifecycle Map",
+    "3. Sovereign Hub & Global Insurance"
+])
+
+# ==============================================================================
 # SUB-MODULE 1: FINANCIAL LITERACY & CHRONIC SURVIVAL GAP MODELING
 # ==============================================================================
 if today_menu == "1. Financial Literacy Mirror":
