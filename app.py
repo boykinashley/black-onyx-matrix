@@ -197,7 +197,7 @@ elif today_menu == "2. Precision Coffee Yield Tracker":
         st.dataframe(agronomy_indicators, use_container_width=True, hide_index=True)
 
 # ==============================================================================
-# NODE 3: FINANCIAL LITERACY DIAGNOSIS (FIXED VARIABLE NAME LEAK)
+# NODE 3: FINANCIAL LITERACY DIAGNOSIS
 # ==============================================================================
 elif today_menu == "3. Financial Literacy Diagnosis":
     st.title("📊 Financial Literacy Mirror: Survival Gap Diagnosis")
@@ -225,34 +225,33 @@ elif today_menu == "3. Financial Literacy Diagnosis":
             
         st.success(f"🌟 Premium Controlled Potential Value: ฿{node3_true_valuation:,.2f} THB")
 
-    # Fixed: Successfully passed the clean Node 3 layout matching variables to the graph array
     st.bar_chart(pd.DataFrame({
         "Economic Paths": ["Middleman Predatory Payout", "Annual Household Costs", "Controlled Trade Potential"],
         "Capital (THB)": [middleman_gross_payout, annual_needs_thb, node3_true_valuation]
     }), x="Economic Paths", y="Capital (THB)")
 
 # ==============================================================================
-# NODE 4: U.S. FEDERAL SOURCING SUITE (UNBLOCKED LAYOUT TREE)
+# NODE 4: U.S. FEDERAL SOURCING SUITE (FULLY TERMINATED STRINGS)
 # ==============================================================================
 elif today_menu == "4. U.S. Federal Sourcing Suite":
     st.title("🏛️ U.S. Federal Export Capital & Global Mentorship Matrix")
-    st.write("Leaning heavily on federal infrastructure specifically engineered to scale women-owned international corporate brokerages [📑].")
+    st.write("Leaning heavily on federal infrastructure specifically engineered to scale women-owned international corporate brokerages.")
     
     tab_step, tab_exim, tab_pitch = st.tabs(["💵 1. SBA STEP Grant", "🛡️ 2. EXIM Bank Insurance", "📢 3. Executive Positioning Pitch"])
     
     with tab_step:
         st.subheader("The State Trade Expansion Program (STEP) Grant")
-        st.write("**Funding Source:** U.S. Small Business Administration (SBA) / Home State Trade Desks (e.g., Colorado OEDIT) [📑].")
-        st.success("💰 **Capital Inflow:** Up to $5,000 – $10,000 per fiscal year in **non-dilutive cash grants** [📑].")
+        st.write("**Funding Source:** U.S. Small Business Administration (SBA) / Home State Trade Desks (e.g., Colorado OEDIT)")
+        st.success("💰 **Capital Inflow:** Up to $5,000 – $10,000 per fiscal year in **non-dilutive cash grants**")
+        # Fixed: Explicitly closed multi-line triple strings below
         st.markdown("""
-        *   **Allocation Scope:** Explicitly subsidizes market entry and travel verification costs for U.S. small business exporters [📑].
-        *   **Covered Capital Items:** International trade mission flights, international shipping of sample boxes, and foreign market trade show registrations [📑, 📑]. 
-        *   **Action Plan:** Navigate to your home state's Department of Economic Development portal and file under 'STEP Grant Open Window' [📑].
+        *   **Allocation Scope:** Explicitly subsidizes market entry and travel verification costs for U.S. small business exporters.
+        *   **Covered Capital Items:** International trade mission flights, international shipping of sample boxes, and foreign market trade show registrations. 
+        *   **Action Plan:** Navigate to your home state's Department of Economic Development portal and file under 'STEP Grant Open Window'.
         """)
         
     with tab_exim:
         st.subheader("Export-Import Bank of the United States — MWOB Desk")
-        st.write("Provides Export Credit Insurance to protect U.S. corporate brokerages from international transaction defaults [📑].")
-        st.success("🔒 **Invoice Risk Shield:** Insures up to **95% of your outbound commercial invoices** against foreign buyer default [📑].")
+        st.write("Provides Export Credit Insurance to protect U.S. corporate brokerages from international transaction defaults.")
+        st.success("🔒 **Invoice Risk Shield:** Insures up to **95% of your outbound commercial invoices** against foreign buyer default.")
         st.markdown("""
-
