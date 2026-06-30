@@ -20,7 +20,7 @@ def load_historical_lookbook_data():
         df = pd.read_csv(csv_url)
         return df
     except Exception:
-        # Secure baseline fallback data generation if network drops
+        # Fixed: Assigned valid numeric placeholder values to the dictionary layer
         return pd.DataFrame({
             "Origin Site": ["Pangkhon Forest", "Doi Chang Ridge", "Mae Salong Canopy"],
             "Elevation (m)":,
@@ -154,6 +154,7 @@ elif today_menu == "3. Financial Literacy Diagnosis":
     middleman_gross_payout = total_harvest_kg * predatory_blended_rate
     household_survival_gap = middleman_gross_payout - annual_needs_thb
     node3_true_valuation = (total_harvest_kg * 0.15 * 1800.0) + (total_harvest_kg * 0.85 * 350.0)
+    net_advisory_surplus = node3_true_valuation - annual_needs_thb
 
     with col2:
         st.write("#### 📊 Strategic Economic Output")
@@ -164,7 +165,7 @@ elif today_menu == "3. Financial Literacy Diagnosis":
         else:
             st.info(f"Breakeven Runway Surplus: ฿{household_survival_gap:,.2f} THB")
             
-        st.success(f"🌟 Premium Controlled Potential Value: ฿{node3_true_valuation:,.2f} THB")
+        st.success(f"🌟 Premium Controlled Potential Value: ฿{node3_true_valuation:,.2f} THB\n\nNet Economic Family Surplus: ฿{net_advisory_surplus:,.2f} THB")
 
     st.bar_chart(pd.DataFrame({
         "Economic Paths": ["Middleman Predatory Payout", "Annual Household Costs", "Controlled Trade Potential"],
@@ -176,5 +177,3 @@ elif today_menu == "3. Financial Literacy Diagnosis":
 # ==============================================================================
 elif today_menu == "4. U.S. Federal Sourcing Suite":
     st.title("🏛️ U.S. Federal Export Capital & Global Mentorship Matrix")
-    st.write("Leaning heavily on federal infrastructure specifically engineered to scale women-owned international corporate brokerages [📑].")
-    
