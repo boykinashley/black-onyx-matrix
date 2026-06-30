@@ -23,7 +23,7 @@ def load_historical_lookbook_data():
         # Fixed: Assigned valid numeric placeholder values to the dictionary layer
         return pd.DataFrame({
             "Origin Site": ["Pangkhon Forest", "Doi Chang Ridge", "Mae Salong Canopy"],
-            "Elevation (m)":,
+            "Elevation (m)":[1350, 1420, 1280],
             "Cherry Grade": ["Tier A Specialty", "Tier A Specialty", "Standard Export"],
             "Brix Index (Sugar)": [22.4, 21.8, 19.5]
         })
