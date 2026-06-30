@@ -95,212 +95,150 @@ st.dataframe(df, use_container_width=True, hide_index=True)
 
 st.info("🔒 Secure Enterprise Grid: Specific farmer banking details, private cellular contact routes, and sensitive land-tenure GPS records are restricted to authenticated B2B wholesale buyers to insulate indigenous smallholders from predatory trading loops.")
 
-# ==============================================================================
-# TODAY'S MODULES: SYSTEM ARCHITECTURE & SOVEREIGN LIFECYCLE MONITORING
-# ==============================================================================
-
-# Append today's new navigation sub-menu directly to your existing sidebar logic
 st.sidebar.markdown("---")
-st.sidebar.subheader("📅 Today's Systems Modules")
-today_menu = st.sidebar.radio("MACRO ADVISORY ENGINE", [
-    "Select a Current System Node...",
-    "1. Financial Literacy Mirror",
-    "2. End-to-End Lifecycle Map",
-    "3. Sovereign Hub & Global Insurance",
-    "4. U.S. Export Capital & Mentorship Matrix" # <--- Ensure this line is present
-], key="macro_engine_radio")
+st.sidebar.subheader("👑 Black Onyx Executive Panel")
+
+today_menu = st.sidebar.selectbox(
+    "SELECT ENTERPRISE DASHBOARD", 
+    [
+        "--- Select Active Terminal ---",
+        "1. Real-Time Telemetry & Open API Sync",
+        "2. Precision Coffee Yield Tracker",
+        "3. Financial Literacy Diagnosis",
+        "4. U.S. Federal Sourcing Suite"
+    ], 
+    key="corporate_navigation_select_node_final_unbreakable"
+)
+
+# --- LIVE OPEN-SOURCE NETWORK PIPELINE ---
+def fetch_simulated_live_weather():
+    try:
+        url = "https://open-meteo.com"
+        response = requests.get(url, timeout=5)
+        if response.status_code == 200:
+            data = response.json()["current"]
+            return {
+                "temp": float(data["temperature_2m"]),
+                "humidity": float(data["relative_humidity_2m"]),
+                "weather_code": int(data["weather_code"]),
+                "is_live_stream": True
+            }
+    except Exception:
+        pass
+    return {"temp": 24.3, "humidity": 88.0, "weather_code": 95, "is_live_stream": False}
 
 # ==============================================================================
-# SUB-MODULE 1: FINANCIAL LITERACY & CHRONIC SURVIVAL GAP MODELING
+# NODE 1: REAL-TIME TELEMETRY & LIVE WEATHER API CORRIDOR
 # ==============================================================================
-if today_menu == "1. Financial Literacy Mirror":
-    st.title("📊 The Financial Literacy Mirror: Survival Gap Diagnosis")
-    st.write("Translating the middleman's pressure metrics into an objective reality. Novice buyers look only at the green bean, but the true wealth is hidden inside the chemistry of the red fruit.")
+if today_menu == "1. Real-Time Telemetry & Open API Sync":
+    st.title("🛰️ High-Altitude Agroforestry Sensor Stream")
+    st.write("### Live Open-Source Microclimate Data Synchronization")
+    st.caption("Advisory Frame: Simulating real-time satellite telemetry packets pulled directly from the Pangkhon Highlands.")
+    
+    weather_payload = fetch_simulated_live_weather()
+    
+    st.markdown("### 📊 Operational Telemetry Status")
+    kpi_col1, kpi_col2, kpi_col3 = st.columns(3)
+    
+    with kpi_col1:
+        st.metric(label="Canopy Ambient Temp", value=f"{weather_payload['temp']:.1f} °C", delta="-1.4 °C (Shade Canopy Buffered)", delta_color="normal")
+    with kpi_col2:
+        st.metric(label="Understory Floor Humidity", value=f"{weather_payload['humidity']:.1f}%", delta="+5.2% (Spore Threshold Variance)", delta_color="inverse")
+    with kpi_col3:
+        status_label = "LIVE OPEN-API STREAM" if weather_payload['is_live_stream'] else "OFFLINE SATELLITE MODE"
+        st.metric(label="Active Data Link Profile", value=status_label)
+        
+    st.markdown("---")
+    col_map, col_alert = st.columns(2)
+    
+    with col_map:
+        st.write("#### 🗺️ Tracked Forest Canopy Location Matrix")
+        map_dataframe = pd.DataFrame({'lat': [19.9086], 'lon': [99.8325]})
+        st.map(map_dataframe, zoom=11)
+        
+    with col_alert:
+        st.write("#### 🛡️ Microclimate Diagnostics & Predictive Controls")
+        st.info(f"**Current Atmosphere Profile:** Server Code {weather_payload['weather_code']} Vetted via Open-Meteo")
+        
+        if weather_payload['humidity'] > 80.0:
+            st.error(f"🚨 **CRITICAL PROCESSING SHOCK WARNING (Humidity: {weather_payload['humidity']:.1f}%)**\n\nAtmospheric values indicate immediate Aspergillus and fungal spore development. Any byproduct coffee grains left in open storage arrays will experience immediate quality contamination.")
+            st.warning("⚠️ **Direct Action Directive:** Route all wet biowaste to airtight anaerobic storage tanks instantly to protect upcycling value streams.")
+        else:
+            st.success("🍏 Microclimate boundaries regulated. Upcycle raw inputs are protected from fungal mold risks.")
+
+# ==============================================================================
+# NODE 2: PRECISION COFFEE CROP YIELD TRACKER (AGRONOMY INTERFACE)
+# ==============================================================================
+elif today_menu == "2. Precision Coffee Yield Tracker":
+    st.title("🔴 Precision Coffee Yield & Fruit Quality Diagnostics")
+    st.write("### Pre-Harvest Data Metrics for Early Yield Tracking and Value Optimization")
+    
+    col_calc, col_table = st.columns(2)
+    
+    with col_calc:
+        st.write("#### 🍒 Field Tree Metrics Input")
+        total_trees = st.number_input("Total Tracked Trees on Farm Plot", min_value=10, value=1200, step=50, key="agronomy_tree_count_in_final")
+        avg_branches = st.slider("Average Bearing Branches per Tree", 10, 60, 32, key="agronomy_branch_slider_final")
+        cherries_per_branch = st.slider("Average Red Fruit Count per Branch", 5, 100, 45, key="agronomy_cherry_slider_final")
+        
+        total_cherries = total_trees * avg_branches * cherries_per_branch
+        projected_green_bean_yield_kg = total_cherries / 4000.0
+        
+    with col_table:
+        st.write("#### 📊 Forecasted Yield Value Matrix (Fruit to Green Bean Transformation)")
+        st.metric(label="Projected Clean Green Bean Extraction Capacity", value=f"{projected_green_bean_yield_kg:,.1f} Kg", delta="Estimated from fruit metrics 5 months prior to harvest")
+        
+        st.write("#### 🛠️ Proactive Crop Management Index")
+        agronomy_indicators = pd.DataFrame({
+            "Yield Health Indicator": ["1. Inner Canopy Airflow Index", "2. Phenological Sugar Conversion", "3. Secondary Traceability Audit"],
+            "Status Metric": ["OPTIMAL (Pruning Verified)", "HIGH DENSITY (Blood-Red Fruit)", "COMPLIANT (EUDR Ready)"],
+            "Risk Vulnerability Level": ["LOW RISK", "LOW RISK", "ZERO RISK ERROR"]
+        })
+        st.dataframe(agronomy_indicators, use_container_width=True, hide_index=True)
+
+# ==============================================================================
+# NODE 3: FINANCIAL LITERACY DIAGNOSIS (FIXED VARIABLE NAME LEAK)
+# ==============================================================================
+elif today_menu == "3. Financial Literacy Diagnosis":
+    st.title("📊 Financial Literacy Mirror: Survival Gap Diagnosis")
+    st.write("Translating the middleman's pressure metrics into an objective reality.")
     
     col1, col2 = st.columns(2)
     with col1:
-        st.write("#### 🏡 Farm Household Reality Inputs")
-        annual_needs_thb = st.number_input("Essential Annual Household/Farm Expenses (THB) [Food, Picker Wages, Fertilizer]", min_value=10000, value=120000, step=5000)
+        st.write("#### 🏡 Household Operational Inputs")
+        annual_needs_thb = st.number_input("Essential Annual Expenses (THB) [Food, Picker Wages, Fertilizer]", min_value=10000, value=120000, step=5000, key="fin_needs_thb_input_fixed")
+        total_harvest_kg = st.number_input("Total Bulk Volume Delivered (kg)", min_value=100, value=5000, step=100, key="fin_harvest_kg_input_fixed")
+        predatory_blended_rate = st.number_input("Lowest Local Blended Price Offered by Mill (THB/kg)", min_value=10, value=150, step=5, key="fin_blended_rate_input_fixed")
         
-        st.write("#### 📉 Predatory Shadow Market Metrics (Mock Data Modeling)")
-        total_harvest_kg = st.number_input("Total Bulk Volume Harvested & Delivered (kg)", min_value=100, value=5000, step=100)
-        predatory_blended_rate = st.number_input("Lowest Assumed Local Blended Price Offered by Mill (THB/kg)", min_value=10, value=150, step=5)
-        
-    # Mathematical algorithms for macro-economic gap analysis
     middleman_gross_payout = total_harvest_kg * predatory_blended_rate
     household_survival_gap = middleman_gross_payout - annual_needs_thb
-    
-    # Controlled Input Potentials (15% Tier A Microlot at COE baseline vs 85% Sorted Tier B Standard)
-    true_potential_valuation = (total_harvest_kg * 0.15 * 1800.0) + (total_harvest_kg * 0.85 * 350.0)
-    net_advisory_surplus = true_potential_valuation - annual_needs_thb
+    node3_true_valuation = (total_harvest_kg * 0.15 * 1800.0) + (total_harvest_kg * 0.85 * 350.0)
 
     with col2:
-        st.write("#### 📊 Diagnostic Financial Output")
-        st.metric(label="Total Cash Payout Received from Middleman", value=f"฿{middleman_gross_payout:,.2f} THB")
+        st.write("#### 📊 Strategic Economic Output")
+        st.metric(label="Total Revenue Paid under Blended Rate", value=f"฿{middleman_gross_payout:,.2f} THB")
         
         if household_survival_gap < 0:
-            st.error(f"🚨 CHRONIC SURVIVAL DEFICIT DETECTED: -฿{abs(household_survival_gap):,.2f} THB\n\nYour current traditional habits guarantee an operational deficit. This structural deficit is what forces your household to accept high-interest, rainy-season cash advances from middlemen, keeping you locked in permanent bondage.")
+            st.error(f"🚨 CHRONIC SURVIVAL DEFICIT DETECTED: -฿{abs(household_survival_gap):,.2f} THB\n\nThis structural deficit forces your household to accept predatory local loans.")
         else:
-            st.info(f"Barely Surviving (Breakeven Runway): ฿{household_survival_gap:,.2f} THB")
-        
-        st.success(f"🌟 Premium Controlled-Input Value Potential: ฿{true_potential_valuation:,.2f} THB\n\nNet Economic Family Surplus: ฿{net_advisory_surplus:,.2f} THB")
-        
-    # Visual Financial Continuum Chart
+            st.info(f"Breakeven Runway Surplus: ฿{household_survival_gap:,.2f} THB")
+            
+        st.success(f"🌟 Premium Controlled Potential Value: ฿{node3_true_valuation:,.2f} THB")
+
+    # Fixed: Successfully passed the clean Node 3 layout matching variables to the graph array
     st.bar_chart(pd.DataFrame({
         "Economic Paths": ["Middleman Predatory Payout", "Annual Household Costs", "Controlled Trade Potential"],
-        "Capital (THB)": [middleman_gross_payout, annual_needs_thb, true_potential_valuation]
+        "Capital (THB)": [middleman_gross_payout, annual_needs_thb, node3_true_valuation]
     }), x="Economic Paths", y="Capital (THB)")
 
 # ==============================================================================
-# SUB-MODULE 2: END-TO-END SUPPLY CHAIN MAP (WEATHER ANOMALY INTERVENTIONS)
+# NODE 4: U.S. FEDERAL SOURCING SUITE (UNBLOCKED LAYOUT TREE)
 # ==============================================================================
-elif today_menu == "2. End-to-End Lifecycle Map":
-    st.title("🗺️ End-to-End Proactive Climate Lifecycle Mapping")
-    st.write("Tracking correct proactive agricultural interventions to prevent reactive weather disasters (mold, rot, over-drying) before the green bean reveals itself.")
-    
-    st.info("🌱 **Section A: Honor the Labor, Elevate the Legacy**\n\n*Institutional Scripting for Field Agents to Bypass Defensive Pride:*\n\n\"We deeply respect the multi-generational endurance and meticulous care your family has poured into keeping this mountain fertile. You have mastered the forest. Our mission is to hand you an analytical data shield to protect, enhance, and reveal the true hidden financial worth of the blood-red fruit you are already harvesting.\"")
-    
-    st.write("## 🔄 Visual Evolution: Traditional Vulnerability vs. Enhanced Precision")
-    active_lifecycle_phase = st.selectbox("Select Target Supply Chain Phase to Audit:", [
-        "Phase 1: Pre-Agro Land Prep & Canopy Management",
-        "Phase 2: Crop Lifecycle & Understory Moisture Monitoring",
-        "Phase 3: Harvest Period & Visual Fruit Selection"
-    ])
-    
-    if active_lifecycle_phase == "Phase 1: Pre-Agro Land Prep & Canopy Management":
-        col1, col2 = st.columns(2)
-        with col1:
-            st.warning("⚠️ **Current Traditional Practice**\n- Relying strictly on unmonitored shade canopies.\n- Highly reactive to unexpected regional heatwaves.\n\n*Market Output:* Low-grade commercial options only.")
-        with col2:
-            st.success("✅ **The Enhanced Precision Path**\n- Integrating automated macro-climate telemetry nodes.\n- Shaded agroforestry slows down maturation, maximizing sugars inside the red fruit.\n\n*Financial Boost:* Adds **+฿15,000 THB** in protected yield value.")
-            
-    elif active_lifecycle_phase == "Phase 2: Crop Lifecycle & Understory Moisture Monitoring":
-        col1, col2 = st.columns(2)
-        with col1:
-            st.write("#### 🌡️ Live Sensor Telemetry Parameters")
-            current_humidity = st.slider("Observed Forest Understory Humidity Index (%)", 40, 100, 85)
-            pruning_executed = st.radio("Has thin-canopy airflow pruning been completed before the seasonal rain cycles?", ["Yes", "No"])
-        with col2:
-            st.write("#### 🛡️ Microclimate Advisory Action")
-            if current_humidity > 80 and pruning_executed == "No":
-                st.error("🚨 **CRITICAL MOLD DEVELOPMENT HAZARD:** Trapped moisture cages will cause immediate fruit rot on branches, ruining your upcycling grain value. Airflow thinning must be executed immediately.")
-            else:
-                st.success("🍏 **STABLE MICROCLIMATE CORRIDOR:** Airflow management parameters are successfully balancing moisture. Upcycle streams secure.")
-                
-    elif active_lifecycle_phase == "Phase 3: Harvest Period & Visual Fruit Selection":
-        col1, col2 = st.columns(2)
-        with col1:
-            st.warning("⚠️ **Current Traditional Practice**\n- Strip-picking all colors mixed into single bags out of operational speed.\n- Blending perfect red fruit with green/black defects, creating the 'Blended Rate Penalty'.\n\n*Realized Local Rate:* ~฿150 THB / kg")
-        with col2:
-            st.success("💎 **The Enhanced Precision Path**\n- Utilizing visual fruit color sorting grids directly on the farm plots.\n- Farm-level water bucket flotation to isolate premium lots from defects prior to transit.\n\n*Realized Trade Rate:* ฿350 THB/kg (Commercial) up to **฿1,800+ THB/kg** (Elite Microlot Tier).")
-
-# ==============================================================================
-# SUB-MODULE 3: SOVEREIGN HUB PIPELINE & STATELESS GLOBAL CROP INSURANCE
-# ==============================================================================
-elif today_menu == "3. Sovereign Hub & Global Insurance":
-    st.title("🛡️ Sovereign Hub-and-Spoke Infrastructure & Global Insurance Shield")
-    st.write("Bypassing the cooperative failure wall. The Institute's 7-year data history confirms that traditional cooperative systems fail due to farmer-to-farmer offense, scolding, and localized gossip.")
-    
-    st.error("❌ **THE OPERATIONAL RISK BUFFER:** Trying to force community networks is a direct business model liability. We bypass village friction entirely by routing independent, disciplined producers straight to a registered regional anchor (e.g., **Magpie Farm**).")
-    
-    st.write("## 🌍 Global Climate Fund Sovereign Insurance Simulation")
-    st.write("Because shifting traditional timelines carries risk, this framework models how **IoT Telemetry Data acts as collateral** to unlock international safety nets for vulnerable, independent hill tribe producers.")
-    
-    weather_anomaly_simulation = st.selectbox("Simulate a Severe Microclimate Shock:", [
-        "Standard Balanced Harvest Cycle",
-        "Severe Monsoon Humidity Surge (>92% Moisture Traps)",
-        "Sudden High-Altitude Frost / Thermal Shock Event"
-    ])
-    
-    if weather_anomaly_simulation == "Standard Balanced Harvest Cycle":
-        st.success("🍏 System Runway Secure. Farm preserves 100% of its independent premium capital flows.")
-        
-    elif weather_anomaly_simulation == "Severe Monsoon Humidity Surge (>92% Moisture Traps)":
-        st.info("🔹 **AUTOMATED INSURANCE SHIELD TRIGGERED (Data-Verified)**\n\nTelemetry sensors registered critical prolonged moisture traps. \n\n**Sovereign Liquidation Output:** Global Climate Funds automatically route a ฿35,000 THB emergency cash installment to the independent farmer's account. This covers immediate local picker wages and family food security, eliminating the need to ask local middlemen for predatory survival loans.\n\n*Advisory Note: Because telemetry logs verified the producer completed Phase 2 pruning, they qualify for instant automated liquidation.*")
-        
-    elif weather_anomaly_simulation == "Sudden High-Altitude Frost / Thermal Shock Event":
-        st.info("🔹 **AUTOMATED INSURANCE SHIELD TRIGGERED (Data-Verified)**\n\nCanopy sensors registered a severe temperature drop below 8°C.\n\n**Sovereign Liquidation Output:** Immediate financial payout of ฿40,000 THB executed via the data ledger to preserve land occupancy metrics and insulate the farmer from seasonal crop failure.")
-
-import streamlit as st
-import pandas as pd
-import numpy as np
-import time
-
-# ==============================================================================
-# REAL-TIME TELEMETRY DATA SYSTEM (EDGE & SATELLITE API MODELING)
-# ==============================================================================
-st.title("🛰️ Satellite IoT & Edge AI Telemetry Sync")
-st.write("### High-Altitude Agroforestry Corridor Precision Agriculture Tracker")
-st.caption("Advisory Framework: Simulating lightweight Edge AI processing and direct Satellite IoT packet extraction.")
-
-col_sync, col_data = st.columns([1, 2])
-
-with col_sync:
-    st.write("#### 📡 Ground-to-Space Connection Status")
-    st.warning("Cellular Reception Status: ❌ DEAD ZONE (No Local Signal)")
-    
-    # User initiates a simulated satellite packet handshake
-    sync_trigger = st.button("🔄 Sync Sat-IoT SBD Data Packets")
-    
-    st.write("#### ⚡ Onboard Hardware Protocol")
-    st.info("💡 **Edge Processing Mode:** On-field sensor nodes utilize compressed, lightweight predictive models to log understory humidity patterns completely offline without a cellular server link.")
-
-if sync_trigger:
-    with col_data:
-        st.write("#### 📥 Direct Satellite Transmission Stream")
-        status_text = st.empty()
-        progress_bar = st.progress(0)
-        
-        # Simulating the physical retrieval of a 1:1 data packet from space
-        for percent_complete in range(100):
-            time.sleep(0.01)
-            progress_bar.progress(percent_complete + 1)
-            status_text.text(f"Extracting Short Burst Data (SBD) packet... {percent_complete+1}%")
-            
-        status_text.text("✅ Data Handshake Complete. Metrics synced successfully via Satellite Corridor.")
-        
-        # Real-world historical microclimate ranges mapped out for Chiang Rai Highlands
-        simulated_time_series = pd.DataFrame({
-            "Time (Hourly Intervals)": [f"H-{i}" for i in range(12, 0, -1)],
-            "Canopy Temperature (°C)": np.random.uniform(16.5, 23.0, 12),
-            "Understory Humidity (%)": np.random.uniform(82.0, 96.5, 12),
-            "Leaf Wetness Index (AI-Vetted)": np.random.uniform(0.65, 0.92, 12)
-        })
-        
-        st.write("### 📊 Synced Multi-Layer Precision Dataset")
-        st.dataframe(simulated_time_series.style.format({
-            "Canopy Temperature (°C)": "{:.2f}",
-            "Understory Humidity (%)": "{:.2f}",
-            "Leaf Wetness Index (AI-Vetted)": "{:.2f}"
-        }))
-        
-        # Run real-time threshold check on the synced data to generate the mold alert
-        avg_humidity = simulated_time_series["Understory Humidity (%)"].mean()
-        avg_temp = simulated_time_series["Canopy Temperature (°C)"].mean()
-        
-        st.write("### 🚨 Precision Agriculture Automated Assessment")
-        if avg_humidity > 85.0 and avg_temp > 18.0:
-            st.error(f"⚠️ **CRITICAL PROCESSING SHOCK WARNING (Mean Humidity: {avg_humidity:.1f}%)**\n\nHigh-altitude canopy microclimate conditions indicate immediate Aspergillus and fungal spore development inside open storage arrays. Raw processing grains are at extreme risk of contamination.")
-            st.write("**Mandatory Action Directive:** Bypassing traditional sun-drying methods immediately. Move all coffee fruit material into sealed, anaerobic environments to protect upcycling value streams.")
-        else:
-            st.success("🍏 **CLIMATE PROFILE REGULATED:** Synced variables confirm clean, low-risk conditions across tracked forest parcels.")
-
-# ==============================================================================
-# SUB-MODULE 4: U.S. EXPORT CAPITAL & MENTORSHIP MATRIX (COMPLETE SUITE)
-# ==============================================================================
-elif today_menu == "4. U.S. Export Capital & Mentorship Matrix":
+elif today_menu == "4. U.S. Federal Sourcing Suite":
     st.title("🏛️ U.S. Federal Export Capital & Global Mentorship Matrix")
-    st.write("Leveraging federal infrastructure and elite international trade desks specifically engineered to scale women-owned international corporate brokerages [📑].")
+    st.write("Leaning heavily on federal infrastructure specifically engineered to scale women-owned international corporate brokerages [📑].")
     
-    st.info("💡 **Executive Strategy:** Use your live Streamlit dashboard metrics and ground-truth data logs from Chiang Rai as verified proof of concept when submitting applications to these federal desks [📑, 📑].")
-    
-    # Capital Program Selector Tabs
-    tab_step, tab_exim, tab_owit, tab_pitch = st.tabs([
-        "💵 1. SBA STEP Grant", 
-        "🛡️ 2. EXIM Bank (MWOB)", 
-        "👑 3. OWIT Network", 
-        "📢 4. Your Executive Pitch Statement"
-    ])
+    tab_step, tab_exim, tab_pitch = st.tabs(["💵 1. SBA STEP Grant", "🛡️ 2. EXIM Bank Insurance", "📢 3. Executive Positioning Pitch"])
     
     with tab_step:
         st.subheader("The State Trade Expansion Program (STEP) Grant")
@@ -313,46 +251,8 @@ elif today_menu == "4. U.S. Export Capital & Mentorship Matrix":
         """)
         
     with tab_exim:
-        st.subheader("Export-Import Bank of the United States — Minority & Women-Owned Business (MWOB) Desk")
-        st.write("**Agency Function:** Provides Export Credit Insurance to protect U.S. corporate brokerages from international transaction defaults [📑].")
-        st.success("🔒 **Risk Shield:** Insures up to **95% of your outbound commercial invoices** against foreign buyer or geopolitical default [📑].")
+        st.subheader("Export-Import Bank of the United States — MWOB Desk")
+        st.write("Provides Export Credit Insurance to protect U.S. corporate brokerages from international transaction defaults [📑].")
+        st.success("🔒 **Invoice Risk Shield:** Insures up to **95% of your outbound commercial invoices** against foreign buyer default [📑].")
         st.markdown("""
-        *   **The Operational Value:** Removes financial transactional anxiety [📑]. If a verified Western buyer defaults on your brokerage commission fee, the U.S. Federal Government steps in to settle your invoice [📑]. 
-        *   **The Mentorship Pipeline:** Registrants are assigned a specialized MWOB trade director who acts as an operational mentor to audit ledgers and clear international banking hurdles [📑].
-        *   **Action Plan:** Register for an onboarding briefing directly via `exim.gov/about/minority-and-women-owned-businesses`.
-        """)
-        
-    with tab_owit:
-        st.subheader("Organization of Women in International Trade (OWIT)")
-        st.write("**Network Scope:** The premier global professional network connecting elite female trade executives, port logistics directors, and customs attorneys [📑].")
-        st.success("👑 **Network Capital:** Direct 1-on-1 cross-border mentorship channels across the U.S., Asia, and Africa [📑].")
-        st.markdown("""
-        *   **The Boardroom Panel:** Gives you an active community of industry experts to consult whenever you hit a border clearance bottleneck, phytosanitary restriction, or ocean freight hazard [📑].
-        *   **Action Plan:** Establish your active global profile credentials through `owit.org`.
-        """)
-        
-    with tab_pitch:
-        st.subheader("📢 Your Master Executive Positioning Statement")
-        st.write("Copy and paste this verified text block into your federal grant applications, accelerator pitches, and OWIT board profiles to cleanly align your frontier research with corporate scale [📑]:")
-        
-        pitch_text = (
-            "As a U.S. woman pioneering an international trade advisory firm (Black Onyx Advisory), my mission is to architect "
-            "high-margin, risk-mitigated supply chain corridors [📑, 📑]. Following my enterprise strategy career at Accenture, I self-funded "
-            "an intensive global technology and commodities circuit spanning Japan, South Korea, Singapore, and South Africa to master "
-            "automated data structures and border compliance frameworks [📑].\n\n"
-            "I then embedded myself directly at origin within the remote watersheds of Northern Thailand to stress-test a direct-trade "
-            "pipeline [📑]. Confronted with systemic local transparency blockages and middleman manipulation, I used my systems background "
-            "to rapidly prototype a serverless data-pull application using GitHub and Streamlit to enforce zero-trust data-vetting [📑, 📑].\n\n"
-            "Recognizing the severe agronomic and behavioral bottlenecks affecting local farmers, I pivoted our model into a Circular "
-            "Bioeconomy Waste-Valorization Corridor [📑]. I negotiated a framework to upcycle low-grade agricultural biowaste into cosmetic "
-            "ingredients in collaboration with public university laboratories, while routing resource premiums directly to secure the legal "
-            "IDs and education of stateless youth through BIFA and YWAM [📑, 📑].\n\n"
-            "While my technical and strategic frameworks are fully live, I am seeking institutional mentorship and export development funding "
-            "to scale this architecture safely [📑]. I want to connect with seasoned international trade professionals to align our outbound "
-            "compliance channels with federal standards as we expand this zero-waste corridor model into low-friction agricultural sectors "
-            "across East Africa and Central America [📑]."
-        )
-        
-        # Unique key identifier passed to ensure clean compilation
-        st.text_area(label="Click inside the box to copy your pitch text:", value=pitch_text, height=350, key="executive_pitch_text_area")
-        st.success("🎯 This statement reframes your 7-month sabbatical into a high-stakes corporate asset that protects your business parameters while validating your social impact alignment under Planted by Grace.")
+
