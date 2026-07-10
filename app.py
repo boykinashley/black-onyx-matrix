@@ -152,60 +152,95 @@ elif today_menu == "2. Real-Time Telemetry & Open API Sync":
         st.success("☀️ **Optimal Microclimate Conditions:** Atmospheric humidity levels support efficient, stable sun-drying. Ensure drying bed raking frequencies occur every 45 minutes to maintain uniform moisture migration.")
 
 # ==============================================================================
-# NODE 3: FINANCIAL LITERACY & FORMALIZATION MATRIX
+# NODE 3: FINANCIAL LITERACY & FORMALIZATION MATRIX (DYNAMIC MAPPING)
 # ==============================================================================
 elif today_menu == "3. Financial Literacy & Formalization Matrix":
     st.title("🏦 Financial Literacy & Institutional Inclusion Blueprint")
     st.write("### De-Risking the Sourcing Corridor: From Cash Shadows to Wire Compliance")
     
-    st.markdown("""
-    Unregistered, cash-in-hand backyard farms violate global Anti-Money Laundering (AML) banking compliance. 
-    This diagnostic panel allows you to audit the financial infrastructure of an outgrower network.
-    """)
+    # Step A: Convert your master dataframe rows into an interactive selector
+    st.subheader("🎯 Select Cooperative Entity to Audit")
+    coop_names = [row["Entity / Association Name"] for row in st.session_state.farm_database]
+    selected_name = st.selectbox("Choose a profile from the registry:", coop_names)
     
-    st.subheader("📋 Legal & Financial Health Self-Audit")
-    f1 = st.checkbox("The cooperative possesses a valid government-issued Tax Identification Number (TIN).")
-    f2 = st.checkbox("Financial transactions flow through a verified Corporate Business Bank Account rather than a personal wallet.")
-    f3 = st.checkbox("The association has a standardized framework for rendering formal Commercial Invoices to buyers.")
+    # Step B: Isolate the exact dictionary index for the chosen cooperative
+    coop_index = next(index for (index, d) in enumerate(st.session_state.farm_database) if d["Entity / Association Name"] == selected_name)
+    active_coop = st.session_state.farm_database[coop_index]
     
-    st.divider()
-    st.write("#### 🛡️ Compliance Diagnostic Results & Advisory Roadmap")
+    st.markdown(f"#### 🛠️ Direct Audit Console for: **{active_coop['Entity / Association Name']}** (`{active_coop['Coop ID']}`)")
     
-    score = sum([f1, f2, f3])
-    if score == 3:
-        st.success("🎉 **Institutional Status Conformed:** This collective is fully eligible for international wire transfers, formal trade lines, and institutional pre-harvest financing applications.")
-    elif score == 2 or score == 1:
-        st.warning("⚠️ **Vulnerable Informal Footprint Detected:** While partially functional, this entity will fail downstream corporate banking audits (KYC/AML). Recommend advising the cooperative leadership to prioritize tax field registration before accepting downstream supply contracts.")
-    else:
-        st.error("🚫 **High-Risk Informal Status:** The collective operates entirely within the shadow economy. They cannot sign valid trade agreements, execute foreign exchange hedges, or clear destination port compliance. Focus your advisory contract immediately on establishing legal corporate registration.")
+    # Step C: Bind checkboxes to the specific values inside that Coop's data dictionary
+    # Pre-populating the UI based on whether their string state says "Active ✅" or "Verified ✅"
+    initial_tax_state = "Active ✅" in active_coop["Tax ID & Corporate Bank"]
+    
+    st.markdown("##### Execute Pillar Verification Checks:")
+    f1 = st.checkbox("The cooperative possesses a valid government-issued Tax Identification Number (TIN).", value=initial_tax_state)
+    f2 = st.checkbox("Financial transactions flow through a verified Corporate Business Bank Account rather than a personal wallet.", value=initial_tax_state)
+    f3 = st.checkbox("The association has a standardized framework for rendering formal Commercial Invoices to buyers.", value=initial_tax_state)
+    
+    # Step D: Save Modifications Button — Commits changes directly back to the matching Coop ID
+    if st.button("Commit Financial Status to Ledger", type="primary"):
+        if f1 and f2 and f3:
+            st.session_state.farm_database[coop_index]["Tax ID & Corporate Bank"] = "Active ✅"
+        else:
+            st.session_state.farm_database[coop_index]["Tax ID & Corporate Bank"] = "Failed ❌ (Informal Cash Outflow)"
+            
+        # Re-evaluate complete export readiness rules for this specific ID
+        db_ref = st.session_state.farm_database[coop_index]
+        if "Verified ✅" in db_ref["Legal & GPS (EUDR)"] and "Active ✅" in db_ref["Tax ID & Corporate Bank"] and db_ref["Moisture Content"] <= 12.5:
+            st.session_state.farm_database[coop_index]["Customs Clearance Status"] = "Ready to Export 🚢"
+        else:
+            st.session_state.farm_database[coop_index]["Customs Clearance Status"] = "Blocked at First-Mile 🚫"
+            
+        st.success(f"Ledger entry for ID {active_coop['Coop ID']} successfully updated! Refreshing registry matrix...")
+        st.rerun()
 
 # ==============================================================================
-# NODE 4: GLOBAL TRADE SOURCING SUITE
+# NODE 4: GLOBAL TRADE SOURCING SUITE (DYNAMIC MAPPING)
 # ==============================================================================
 elif today_menu == "4. Global Trade Sourcing Suite":
     st.title("🚢 Border Logistics & Regulatory Clearance Desk")
     st.write("### Conforming First-Mile Agriculture to Destination Port Demands")
     
+    st.subheader("🎯 Select Active Container Shipment to Clear")
+    coop_names = [row["Entity / Association Name"] for row in st.session_state.farm_database]
+    selected_name = st.selectbox("Choose a profile to clear for custom borders:", coop_names)
+    
+    # Match the active profile index
+    coop_index = next(index for (index, d) in enumerate(st.session_state.farm_database) if d["Entity / Association Name"] == selected_name)
+    active_coop = st.session_state.farm_database[coop_index]
+    
+    st.markdown(f"#### 🛂 Custom Inspection Stream for: **{active_coop['Entity / Association Name']}** (`{active_coop['Coop ID']}`)")
+    
     col_la, col_lb = st.columns(2)
     with col_la:
-        st.subheader("🛂 Sourcing Compliance Parameters")
-        target_moisture = st.slider("Measured Bean Moisture Percentage:", 8.0, 16.0, 12.0, step=0.1)
-        has_phyto_cert = st.radio("Has Local Ministry of Agriculture issued a Phytosanitary Certificate?", ["No", "Yes"])
-        has_gps_poly = st.radio("Are Land Plot GPS Polygons completely mapped (EUDR Deforestation Compliance)?", ["No", "Yes"])
+        st.subheader("🎛️ Live Metrics Overrides")
+        # Pull current values from database state as default starting positions on sliders
+        target_moisture = st.slider("Measured Bean Moisture Percentage:", 8.0, 16.0, float(active_coop["Moisture Content"]), step=0.1)
+        
+        init_phyto = "Yes" if "Passed ✅" in active_coop["Phytosanitary Inspection"] else "No"
+        has_phyto_cert = st.radio("Has Local Ministry of Agriculture issued a Phytosanitary Certificate?", ["No", "Yes"], index=1 if init_phyto == "Yes" else 0)
+        
+        init_gps = "Yes" if "Verified ✅" in active_coop["Legal & GPS (EUDR)"] else "No"
+        has_gps_poly = st.radio("Are Land Plot GPS Polygons completely mapped (EUDR Deforestation Compliance)?", ["No", "Yes"], index=1 if init_gps == "Yes" else 0)
         
     with col_lb:
         st.subheader("📑 Border Customs Clearance Outlook")
-        if 10.0 <= target_moisture <= 12.5 and has_phyto_cert == "Yes" and has_gps_poly == "Yes":
-            st.balloons()
-            st.success("🟢 **BORDER SEGREGATION APPROVED**\n\nThis container lot matches all regulatory frameworks for US FDA and EUDR border entry. It can be confidently packed into a standard 20-foot ocean container and traded on premium multi-year specialty contracts.")
-        else:
-            st.error("🔴 **CONTAINER SHIPMENT RISK ACTIVE**\n\nYour current sourcing metrics contain legal or biological vulnerabilities:")
-            if target_moisture > 12.5:
-                st.markdown("- **Biological Risk:** Moisture levels >12.5% will trigger rapid mold proliferation and potential Ochratoxin A contamination, causing port authorities to quarantine and incinerate the lot.")
-            if has_phyto_cert == "No":
-                st.markdown("- **Legal Safety Risk:** Missing a Phytosanitary Certificate means border agents will turn the shipment away at the port of entry for violating biosecurity laws.")
-            if has_gps_poly == "No":
-                st.markdown("- **Regulatory Trade Risk:** Missing geographic coordinates completely bans this coffee from entering European or premium Western channels under modern deforestation tracking mandates.")
-
-else:
-    st.info("### 💻 Terminal Access Idle\nSelect a specific active dashboard node in the **Black Onyx Executive Panel** on the left to begin auditing operations and running telemetry diagnostics.")
+        
+        # Save Override Data back to State Row
+        if st.button("Calculate & Lock Clearance Validation"):
+            # Update individual data rows
+            st.session_state.farm_database[coop_index["Moisture Content"]] = target_moisture
+            st.session_state.farm_database[coop_index]["Phytosanitary Inspection"] = "Passed ✅" if has_phyto_cert == "Yes" else "Failed ❌"
+            st.session_state.farm_database[coop_index]["Legal & GPS (EUDR)"] = "Verified ✅" if has_gps_poly == "Yes" else "Pending ⚠️"
+            
+            # Execute Global Rules Evaluator for the Specific Coop ID
+            if 10.0 <= target_moisture <= 12.5 and has_phyto_cert == "Yes" and has_gps_poly == "Yes":
+                st.session_state.farm_database[coop_index]["Customs Clearance Status"] = "Ready to Export 🚢"
+                st.balloons()
+                st.success(f"🟢 **PASSPORT GENERATED FOR ID: {active_coop['Coop ID']}**\n\nThis container lot matches all regulatory frameworks for entry. Rules updated on main dashboard ledger.")
+            else:
+                st.session_state.farm_database[coop_index]["Customs Clearance Status"] = "Blocked at First-Mile 🚫"
+                st.error("🔴 **CONTAINER SHIPMENT RISK ACTIVE**\n\nLedger updated. Check main registry matrix view to see active validation failure nodes.")
+            
+            st.rerun()
