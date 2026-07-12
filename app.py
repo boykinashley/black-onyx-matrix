@@ -244,3 +244,100 @@ elif today_menu == "4. Global Trade Sourcing Suite":
                 st.error("🔴 **CONTAINER SHIPMENT RISK ACTIVE**\n\nLedger updated. Check main registry matrix view to see active validation failure nodes.")
             
             st.rerun()
+
+# ==============================================================================
+# TERMINAL NODE: OPERATIONAL READINESS ASSESSMENT ARCHITECTURE
+# ==============================================================================
+elif today_menu == "3. Financial Literacy & Formalization Matrix": # Or assign to a dedicated node
+    st.title("📊 Institutional Operational Readiness Assessment")
+    st.write("### Accenture-Inspired First-Mile Capability & Risk Maturity Matrix")
+    st.markdown("""
+    This assessment engine scores unorganized outgrower networks against structural international trade milestones. 
+    It assigns a definitive Maturity Tier to dictate downstream corporate purchasing safety.
+    """)
+    st.divider()
+
+    # Step A: Select Active Cooperative Entity from Global Registry Memory
+    coop_names = [row["Entity Name"] for row in st.session_state.farm_database]
+    selected_name = st.selectbox("Select Target Asset Portfolio to Audit:", coop_names)
+    
+    # Locate array index mapping node
+    coop_index = next(index for (index, d) in enumerate(st.session_state.farm_database) if d["Entity Name"] == selected_name)
+    active_coop = st.session_state.farm_database[coop_index]
+    
+    st.markdown(f"#### 🔒 Active Capability Evaluation Node: **{active_coop['Entity Name']}** (`{active_coop['Coop ID']}`)")
+    
+    # Step B: Consultative Requirement Gathering Input Checkboxes
+    col_input_left, col_input_right = st.columns(2)
+    
+    with col_input_left:
+        st.markdown("##### 🗂️ Pillar 1: Regulatory & Structural Formalization")
+        chk_tin = st.checkbox("Active Corporate Registration / Government Tax ID (TIN)", value=("Active ✅" in active_coop["Tax ID & Corporate Bank"]))
+        chk_bank = st.checkbox("Corporate Bank Account with Active AML / KYC Anti-Fraud Clearance", value=("Active ✅" in active_coop["Tax ID & Corporate Bank"]))
+        chk_gps = st.checkbox("EUDR Compliant GIS Polygon Land Maps Logged to Cloud Registry", value=("Verified ✅" in active_coop["Legal & GPS (EUDR)"]))
+        chk_labor = st.checkbox("Zero-Forced-Labor Field Certifications Signed & Logged to DDS", value=True)
+
+    with col_input_right:
+        st.markdown("##### 🔬 Pillar 2: Agricultural Processing & Infrastructure Discipline")
+        measured_moisture = st.slider("Patio Batch Moisture Profile (%):", 8.0, 16.0, float(active_coop["Moisture Content"]), step=0.1)
+        chk_phyto = st.checkbox("Accredited Third-Party Phytosanitary Stamp (ISPM 12 Ready)", value=("Passed ✅" in active_coop["Phytosanitary Inspection"]))
+        chk_sorting = st.checkbox("On-Site Flotation Tanks & Sieve Density Machinery Present", value=True)
+        chk_trace = st.checkbox("First-Mile Lot Code Batch Tracking Utilized at Receiving Desk", value=False)
+
+    # Step C: Matched Capability Rulebook Logic Engine
+    # Total possible infrastructure milestones = 8
+    is_moisture_compliant = 10.0 <= measured_moisture <= 12.5
+    milestones_passed = sum([chk_tin, chk_bank, chk_gps, chk_labor, is_moisture_compliant, chk_phyto, chk_sorting, chk_trace])
+    
+    # Define Corporate Maturity Matrix Threshold Tiers
+    if milestones_passed == 8:
+        maturity_tier = "TIER 1: INSTITUTIONAL EXPORT GRADE 🟢"
+        tier_color = "green"
+        risk_profile = "MINIMAL RESIDUAL RISK — Fully cleared for instant B2B wire transfers, multi-year forward contracts, and accelerated destination customs entry lanes."
+        strategic_directive = "Maintain active digital passport syncing. This asset is ready to be routed to top-tier premium global buyers."
+    elif 6 <= milestones_passed <= 7:
+        maturity_tier = "TIER 2: CAPABLE SPECIALTY CORRIDOR 🟡"
+        tier_color = "orange"
+        risk_profile = "MODERATE OPERATIONAL RISK — Minor compliance gaps detected. Eligible for spot purchases, but vulnerable to localized administrative friction."
+        strategic_directive = "Prioritize the immediate closing of the unchecked operational items below before attempting to clear European customs."
+    elif 4 <= milestones_passed <= 5:
+        maturity_tier = "TIER 3: EMERGING INFORMAL NETWORK 🟠"
+        tier_color = "orange"
+        risk_profile = "ELEVATED TRANSACTIONAL RISK — Supply chain operates within cash shadows or lacks spatial compliance. High probability of border cargo seizure."
+        strategic_directive = "Deploy first-mile field agronomists and structural advisors. Do not issue a Bill of Lading text manifest under current operational conditions."
+    else:
+        maturity_tier = "TIER 4: UNRESTRICTED COMODITY SURVIVAL LOOP 🔴"
+        tier_color = "red"
+        risk_profile = "SEVERE REGULATORY EXPOSURE — Total compliance absence. Asset is completely decoupled from formal global trade architecture."
+        strategic_directive = "Corporate buyers must halt all funding allocation. Sourcing contract requires complete first-mile restructuring from the ground up."
+
+    st.divider()
+    
+    # Step D: Render Executive Results Panel
+    st.subheader("🎯 Enterprise Operational Maturity Output")
+    
+    res_col1, res_col2 = st.columns([1, 2])
+    
+    with res_col1:
+        st.markdown(f"### Score: `{milestones_passed} / 8`")
+        st.markdown(f"##### Assigned Rating:\n**<span style='color:{tier_color}'>{maturity_tier}</span>**", unsafe_allow_html=True)
+        
+    with res_col2:
+        st.markdown(f"**Current Risk Profile:** {risk_profile}")
+        st.markdown(f"**Consultative Strategy Move:** {strategic_directive}")
+
+    # Step E: Trigger Live Memory Sync Updates
+    if st.button("Commit Maturity Rating to Global Registry Ledger", type="primary"):
+        st.session_state.farm_database[coop_index]["Moisture Content"] = measured_moisture
+        st.session_state.farm_database[coop_index]["Tax ID & Corporate Bank"] = "Active ✅" if (chk_tin and chk_bank) else "Failed ❌"
+        st.session_state.farm_database[coop_index]["Legal & GPS (EUDR)"] = "Verified ✅" if chk_gps else "Pending ⚠️"
+        st.session_state.farm_database[coop_index]["Phytosanitary Inspection"] = "Passed ✅" if (chk_phyto and is_moisture_compliant) else "Failed ❌"
+        
+        if milestones_passed >= 6:
+            st.session_state.farm_database[coop_index]["Customs Clearance Status"] = "Ready to Export 🚢"
+        else:
+            st.session_state.farm_database[coop_index]["Customs Clearance Status"] = "Blocked at First-Mile 🚫"
+            
+        st.success(f"Maturity rating locked for ID {active_coop['Coop ID']}! Registry updated successfully.")
+        st.rerun()
+
