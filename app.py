@@ -1,3 +1,6 @@
+# ==============================================================================
+# PART 1: CONFIGURATION, GLOBAL REGISTRY, & AUTO-STREAMING ENGINE
+# ==============================================================================
 import requests
 import json
 import numpy as np
@@ -16,17 +19,13 @@ st.title("🛡️ BLACK ONYX × LEOLA ADVISORY: AUTOMATED EXEC ADVISOR")
 st.subheader("Continuous Transaction Controls (CTC) & First-Mile Compliance Engine")
 st.write("**System Architecture:** Automated Supply Chain Risk Mitigator | **HS Code Baseline:** 0901 (Green Coffee)")
 
-# 🚨 PASTE YOUR ENTIRE "PUBLISHED TO WEB" GOOGLE SHEETS CSV EXPORT LINK HERE:
+# 🚨 YOUR CSV LINK IS ALREADY ACTIVE HERE:
 CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSd_xrC4SZeJ_KKdt0wAFUPcTZqZo0MjN8Ifhwq090eqg3PLaCXU2XukTlLEW4sVM7GCnOf-Kmqzlwy/pub?output=csv"
 
-@st.cache_data(ttl=5) # 5-second short cache lifespan so edits appear quickly
+@st.cache_data(ttl=5) # Kept at 5 seconds so caching doesn't block background data fetches
 def fetch_and_translate_google_sheet(url):
     try:
-        # Step A: Pull raw records straight from your Google Sheet cloud network
         raw_df = pd.read_csv(url)
-        
-        # Step B: THE BRIDGING LAYER — Translate your Google Sheet columns to match the Python logic!
-        # Syntax: "Your Real Google Sheet Header Name" : "The Core App's Expected Name"
         column_mapping_dictionary = {
             "What is the name of your farm or village?": "Entity Name",
             "Cooperative / Estate Name": "Entity Name",
@@ -38,11 +37,8 @@ def fetch_and_translate_google_sheet(url):
             "Measured Moisture Level": "Moisture Content",
             "Phytosanitary Audit Status": "Phytosanitary Inspection"
         }
-        
-        # Execute an automated column rename map to standardize the payload
         mapped_df = raw_df.rename(columns=column_mapping_dictionary)
         
-        # Step C: Inject structural safety backstops for missing critical tracking keys
         if "Coop ID" not in mapped_df.columns:
             mapped_df.insert(0, "Coop ID", [f"COOP-LN{i+1:02d}" for i in range(len(mapped_df))])
         if "Entity Name" not in mapped_df.columns:
@@ -56,7 +52,6 @@ def fetch_and_translate_google_sheet(url):
         if "Phytosanitary Inspection" not in mapped_df.columns:
             mapped_df["Phytosanitary Inspection"] = "Failed ❌"
             
-        # Step D: Business Logic Engine: Compute Customs Clearance Status at runtime
         customs_status = []
         for _, row in mapped_df.iterrows():
             is_legal = "Verified ✅" in str(row.get("Legal & GPS (EUDR)", ""))
@@ -74,9 +69,7 @@ def fetch_and_translate_google_sheet(url):
                 
         mapped_df["Customs Clearance Status"] = customs_status
         return mapped_df.to_dict(orient="records")
-        
     except Exception as e:
-        # Production-grade fallback matrix representing formal registered entity structures if URL is private or empty
         return [
             {
                 "Coop ID": "COOP-TH01",
@@ -86,30 +79,34 @@ def fetch_and_translate_google_sheet(url):
                 "Moisture Content": 11.2,
                 "Phytosanitary Inspection": "Passed ✅",
                 "Customs Clearance Status": "Ready to Export 🚢"
-            },
-            {
-                "Coop ID": "COOP-HN02",
-                "Entity Name": "Valley View Smallholder Network",
-                "Legal & GPS (EUDR)": "Pending ⚠️",
-                "Tax ID & Corporate Bank": "Failed ❌",
-                "Moisture Content": 13.8,
-                "Phytosanitary Inspection": "Failed ❌",
-                "Customs Clearance Status": "Blocked at First-Mile 🚫"
             }
         ]
 
-# 2. STATE SYNCHRONIZATION
-# Always query the spreadsheet cloud first instead of locking in a static hardcoded array
-if 'farm_database' not in st.session_state or st.sidebar.button("🔄 Force Global Sheet Sync"):
+# 2. INITIALIZE BASELINE MEMORY STATE
+if 'farm_database' not in st.session_state:
     st.session_state.farm_database = fetch_and_translate_google_sheet(CSV_URL)
-
-# Transform active memory state back into dataframes for analytics dashboard presentation
-lookbook_df = pd.DataFrame(st.session_state.farm_database)
 
 st.markdown("### 📊 Global Registry & Institutional Traceability Passport Ledger")
 st.markdown("This live ledger converts first-mile operations into auditable corporate assets, eliminating informal economy vulnerabilities.")
-st.dataframe(lookbook_df, use_container_width=True, hide_index=True)
+
+# ==============================================================================
+# NEW AUTO-REFRESH TRIGGER WINDOW (PASTE THIS EXACT HOOK)
+# ==============================================================================
+@st.fragment(run_every="10s") # Automatically streams live Google Sheet rows every 10 seconds without refreshing the whole browser
+def render_auto_streaming_ledger():
+    # Background fetch execution block
+    st.session_state.farm_database = fetch_and_translate_google_sheet(CSV_URL)
+    lookbook_df = pd.DataFrame(st.session_state.farm_database)
+    
+    # Render the dynamic grid view inside the fragment loop
+    st.dataframe(lookbook_df, use_container_width=True, hide_index=True)
+
+# Call the function to display your ledger live
+render_auto_streaming_ledger()
+
 st.divider()
+# --- Code transitions into your Section 2 Sidebar options from here ---
+
 
 # ==============================================================================
 # PART 2: SIDEBAR TERMINAL DESK & METEOROLOGICAL TELEMETRY
