@@ -341,3 +341,171 @@ elif today_menu == "3. Financial Literacy & Formalization Matrix": # Or assign t
         st.success(f"Maturity rating locked for ID {active_coop['Coop ID']}! Registry updated successfully.")
         st.rerun()
 
+# ==============================================================================
+# PART 5: SYSTEM FOOTER, RECOVERY ASSESSMENT & VALUE CALCULATOR ARCHITECTURE
+# ==============================================================================
+st.divider()
+st.markdown("## 📊 Institutional Operational Readiness Assessment")
+st.write("### Accenture-Inspired First-Mile Capability & Risk Maturity Matrix")
+st.markdown("""
+This diagnostic panel scores unorganized outgrower networks against structural international trade milestones, 
+calculating real-time capital protection and compliance ROI.
+""")
+
+# 1. Select Active Cooperative Entity from Global Registry Memory
+coop_names = [row["Entity Name"] for row in st.session_state.farm_database]
+selected_name = st.selectbox(
+    "Select Target Asset Portfolio to Audit:", 
+    coop_names, 
+    key="global_bottom_matrix_selector"
+)
+
+# Locate array index mapping node
+coop_index = next(index for (index, d) in enumerate(st.session_state.farm_database) if d["Entity Name"] == selected_name)
+active_coop = st.session_state.farm_database[coop_index]
+
+st.markdown(f"#### 🔒 Active Capability Evaluation Node: **{active_coop['Entity Name']}** (`{active_coop['Coop ID']}`)")
+
+# 2. Consultative Requirement Gathering Input Checkboxes
+col_input_left, col_input_right = st.columns(2)
+
+with col_input_left:
+    st.markdown("##### 🗂️ Pillar 1: Regulatory & Structural Formalization")
+    chk_tin = st.checkbox("Active Corporate Registration / Government Tax ID (TIN)", value=("Active ✅" in active_coop["Tax ID & Corporate Bank"]), key="bottom_chk_tin")
+    chk_bank = st.checkbox("Corporate Bank Account with Active AML / KYC Anti-Fraud Clearance", value=("Active ✅" in active_coop["Tax ID & Corporate Bank"]), key="bottom_chk_bank")
+    chk_gps = st.checkbox("EUDR Compliant GIS Polygon Land Maps Logged to Cloud Registry", value=("Verified ✅" in active_coop["Legal & GPS (EUDR)"]), key="bottom_chk_gps")
+    chk_labor = st.checkbox("Zero-Forced-Labor Field Certifications Signed & Logged to DDS", value=True, key="bottom_chk_labor")
+
+with col_input_right:
+    st.markdown("##### 🔬 Pillar 2: Agricultural Processing & Infrastructure Discipline")
+    measured_moisture = st.slider("Patio Batch Moisture Profile (%):", 8.0, 16.0, float(active_coop["Moisture Content"]), step=0.1, key="bottom_moisture_slider")
+    chk_phyto = st.checkbox("Accredited Third-Party Phytosanitary Stamp (ISPM 12 Ready)", value=("Passed ✅" in active_coop["Phytosanitary Inspection"]), key="bottom_chk_phyto")
+    chk_sorting = st.checkbox("On-Site Flotation Tanks & Sieve Density Machinery Present", value=True, key="bottom_chk_sorting")
+    chk_trace = st.checkbox("First-Mile Lot Code Batch Tracking Utilized at Receiving Desk", value=False, key="bottom_chk_trace")
+
+# 3. Matched Capability Rulebook Logic Engine
+is_moisture_compliant = 10.0 <= measured_moisture <= 12.5
+milestones_passed = sum([chk_tin, chk_bank, chk_gps, chk_labor, is_moisture_compliant, chk_phyto, chk_sorting, chk_trace])
+
+# Define Corporate Maturity Matrix Threshold Tiers
+if milestones_passed == 8:
+    maturity_tier = "TIER 1: INSTITUTIONAL EXPORT GRADE 🟢"
+    tier_color = "#2ecc71"
+    risk_profile = "MINIMAL RESIDUAL RISK — Fully cleared for instant B2B wire transfers, multi-year forward contracts, and accelerated destination customs entry lanes."
+    strategic_directive = "Maintain active digital passport syncing. This asset is ready to be routed to top-tier premium global buyers."
+elif 6 <= milestones_passed <= 7:
+    maturity_tier = "TIER 2: CAPABLE SPECIALTY CORRIDOR 🟡"
+    tier_color = "#f1c40f"
+    risk_profile = "MODERATE OPERATIONAL RISK — Minor compliance gaps detected. Eligible for spot purchases, but vulnerable to localized administrative friction."
+    strategic_directive = "Prioritize the immediate closing of the unchecked operational items to clear European customs."
+elif 4 <= milestones_passed <= 5:
+    maturity_tier = "TIER 3: EMERGING INFORMAL NETWORK 🟠"
+    tier_color = "#e67e22"
+    risk_profile = "ELEVATED TRANSACTIONAL RISK — Supply chain operates within cash shadows or lacks spatial compliance. High probability of border cargo seizure."
+    strategic_directive = "Deploy first-mile field agronomists and structural advisors. Do not issue a Bill of Lading text manifest under current operational conditions."
+else:
+    maturity_tier = "TIER 4: UNRESTRICTED COMMODITY SURVIVAL LOOP 🔴"
+    tier_color = "#e74c3c"
+    risk_profile = "SEVERE REGULATORY EXPOSURE — Total compliance absence. Asset is completely decoupled from formal global trade architecture."
+    strategic_directive = "Corporate buyers must halt all funding allocation. Sourcing contract requires complete first-mile restructuring from the ground up."
+
+st.divider()
+
+# 4. Render Executive Results Panel
+st.subheader("🎯 Enterprise Operational Maturity Output")
+res_col1, res_col2 = st.columns(2)
+
+with res_col1:
+    st.markdown(f"### Score: `{milestones_passed} / 8`")
+    st.markdown(f"##### Assigned Rating:\n**<span style='color:{tier_color}'>{maturity_tier}</span>**", unsafe_allow_html=True)
+    st.markdown(f"**Current Risk Profile:** {risk_profile}")
+    st.markdown(f"**Consultative Strategy Move:** {strategic_directive}")
+    
+# ==============================================================================
+# FINANCIAL ENGINE: VALUE PROTECTION & ROI CALCULATOR
+# ==============================================================================
+with res_col2:
+    st.markdown("#### 💰 Sourcing Risk Value Protection Matrix")
+    st.caption("Quantifying the financial losses mitigated by this first-mile digital pre-check.")
+    
+    # Financial baseline assumptions per standard 20ft shipping container load
+    container_value_usd = 75000.00
+    
+    # Dynamic Loss Prevention Tracking Logic
+    exposure_saved_mold = container_value_usd if not is_moisture_compliant else 0.0
+    exposure_saved_eudr = (container_value_usd * 0.04) if not chk_gps else 0.0 # 4% Corporate revenue fine proxy
+    exposure_saved_demurrage = 4500.00 if (not chk_phyto or not chk_tin) else 0.0 # Average 15 days port hold fees
+    
+    total_exposure_mitigated = exposure_saved_mold + exposure_saved_eudr + exposure_saved_demurrage
+    
+    # Render Financial Analytics Data View
+    st.write(f"• **Biological Mold Loss Prevented:** `${exposure_saved_mold:,.2f}`")
+    st.write(f"• **EUDR Border Penalty Defended:** `${exposure_saved_eudr:,.2f}`")
+    st.write(f"• **Port Demurrage Debt Prevented:** `${exposure_saved_demurrage:,.2f}`")
+    
+    st.metric(
+        label="Total Financial Risk Exposure Mitigated by Advisor", 
+        value=f"${total_exposure_mitigated:,.2f}",
+        delta=f"${total_exposure_mitigated:,.2f} Retained Capital",
+        delta_color="normal"
+    )
+
+st.divider()
+
+# ==============================================================================
+# EXPORT CORE: EXECUTIVE DATA PASSPORT TRANSMISSION
+# ==============================================================================
+st.subheader("📋 Executive Export Control Desk")
+btn_col1, btn_col2 = st.columns(2)
+
+with btn_col1:
+    if st.button("Commit Maturity Rating to Global Registry Ledger", type="primary", key="bottom_commit_button"):
+        st.session_state.farm_database[coop_index]["Moisture Content"] = measured_moisture
+        st.session_state.farm_database[coop_index]["Tax ID & Corporate Bank"] = "Active ✅" if (chk_tin and chk_bank) else "Failed ❌"
+        st.session_state.farm_database[coop_index]["Legal & GPS (EUDR)"] = "Verified ✅" if chk_gps else "Pending ⚠️"
+        st.session_state.farm_database[coop_index]["Phytosanitary Inspection"] = "Passed ✅" if (chk_phyto and is_moisture_compliant) else "Failed ❌"
+        
+        if milestones_passed >= 6:
+            st.session_state.farm_database[coop_index]["Customs Clearance Status"] = "Ready to Export 🚢"
+        else:
+            st.session_state.farm_database[coop_index]["Customs Clearance Status"] = "Blocked at First-Mile 🚫"
+            
+        st.success(f"Maturity rating locked for ID {active_coop['Coop ID']}! Registry updated successfully.")
+        st.rerun()
+
+with btn_col2:
+    # Constructing a clean, machine-readable text payload blueprint for C-suite distribution
+    export_passport_payload = f"""==================================================
+BLACK ONYX × LEOLA ADVISORY: TRADE COMPLIANCE PASSPORT
+TIMESTAMP: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+HARMONIZED HS CODE BASELINE: 0901.11 (GREEN COFFEE)
+==================================================
+[1. COUNTERPARTY METRICS]
+- Assigned Entity ID : {active_coop['Coop ID']}
+- Association Name  : {active_coop['Entity Name']}
+- Global Score      : {milestones_passed} / 8 Milestones Passed
+- Maturity Rating   : {maturity_tier}
+
+[2. PILLAR ATTESTATION VERDICTS]
+- Corporate & Tax ID : {'PASSED' if (chk_tin and chk_bank) else 'CRITICAL OUTFLOW EXPOSURE RISK'}
+- Environmental Maps : {'VERIFIED COMPLIANT (EUDR READY)' if chk_gps else 'EMBARGOED - NO GEOGON POLYGONS'}
+- Measured Moisture  : {measured_moisture}% ({'STABLE' if is_moisture_compliant else 'BIOLOGICAL DAMAGE ALERT'})
+- Phytosanitary ISPM : {'VALID STAMP RETRIEVED' if chk_phyto else 'MISSING BIOSECURITY AUDIT'}
+
+[3. ADVISORY REVENUE PROTECTION STATEMENT]
+- Gross Capital Loss Exposure Defended: ${total_exposure_mitigated:,.2f} USD
+- Customs Pipeline Routing Verdict     : {strategic_directive}
+=================================================="""
+
+    st.download_button(
+        label="📥 Download Executive Compliance Scorecard (TXT)",
+        data=export_passport_payload,
+        file_name=f"BlackOnyx_Compliance_Passport_{active_coop['Coop ID']}.txt",
+        mime="text/plain",
+        key="bottom_download_passport_button"
+    )
+
+st.divider()
+st.caption("🔒 Black Onyx Advisory Core Terminal. Protected under international trade data governance protocols.")
+
+
