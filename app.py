@@ -1,5 +1,5 @@
 # ==============================================================================
-# PART 1: CONFIGURATION & RESILIENT VAULT INJECTION LAYER
+# PART 1: CONFIGURATION & CODESPACE HYBRID VAULT INTEGRATION
 # ==============================================================================
 import os
 import requests
@@ -21,27 +21,24 @@ st.title("🛡️ BLACK ONYX × LEOLA ADVISORY: AUTOMATED EXEC ADVISOR")
 st.subheader("Continuous Transaction Controls (CTC) & First-Mile Compliance Engine")
 st.write("**System Architecture:** Automated Supply Chain Risk Mitigator | **HS Code Baseline:** 0901 (Green Coffee)")
 
-# 🔒 DYNAMIC MULTI-KEY VAULT ARBITER
-# This protects your system from naming inconsistencies across local and cloud environments
+# 🔒 DYNAMIC MULTI-ENVIRONMENT ARBITER (Optimized for GitHub Core)
 SECURE_URL = None
 
-# Step 1: Scan Streamlit secrets using case-insensitive validation
-if "GOOGLE_SECURE_CSV_LINK" in st.secrets:
-    SECURE_URL = st.secrets["GOOGLE_SECURE_CSV_LINK"]
-elif "google_secure_csv_link" in st.secrets:
-    SECURE_URL = st.secrets["google_secure_csv_link"]
-    
-# Step 2: If secrets are blank, scan your local system environment variables
-if not SECURE_URL:
-    SECURE_URL = os.environ.get("GOOGLE_SECURE_CSV_LINK") or os.environ.get("google_secure_csv_link")
+# Gate A: Scan local machine or GitHub Codespace environment variables first
+SECURE_URL = os.environ.get("GOOGLE_SECURE_CSV_LINK") or os.environ.get("google_secure_csv_link")
 
-# Step 3: Emergency Break — Only triggers if absolutely zero variables are found
+# Gate B: Fallback scan to Streamlit Cloud secrets configuration panel
+if not SECURE_URL:
+    if "GOOGLE_SECURE_CSV_LINK" in st.secrets:
+        SECURE_URL = st.secrets["GOOGLE_SECURE_CSV_LINK"]
+    elif "google_secure_csv_link" in st.secrets:
+        SECURE_URL = st.secrets["google_secure_csv_link"]
+
+# Emergency Halt — Triggers only if zero variables exist in GitHub or Streamlit
 if not SECURE_URL:
     st.error("🔒 **Security Policy Exception:** Master Sourcing API Token Is Encrypted or Missing. System Access Revoked.")
-    st.caption("Advisor Alert: Ensure your private link is securely loaded into the Streamlit Cloud Secrets console or your local .streamlit/secrets.toml file.")
+    st.caption("Advisor Alert: Running inside GitHub. Ensure your link is loaded into your GitHub Repository Secrets panel under 'GOOGLE_SECURE_CSV_LINK'.")
     st.stop()
-
-
 
 @st.cache_data(ttl=5) # 5-second short cache lifespan so edits appear quickly
 def secure_fetch_and_translate(url):
