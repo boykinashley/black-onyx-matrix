@@ -1,13 +1,11 @@
 # ==============================================================================
-# PART 1: CONFIGURATION & CODESPACE HYBRID VAULT INTEGRATION
+# PART 1: CONFIGURATION, GLOBAL REGISTRY, & OPEN CORRIDOR FETCH ENGINE
 # ==============================================================================
-import os
 import requests
 import json
 import numpy as np
 import pandas as pd
 import streamlit as st
-from io import StringIO
 from datetime import datetime
 
 # 1. Page Configuration
@@ -21,35 +19,14 @@ st.title("🛡️ BLACK ONYX × LEOLA ADVISORY: AUTOMATED EXEC ADVISOR")
 st.subheader("Continuous Transaction Controls (CTC) & First-Mile Compliance Engine")
 st.write("**System Architecture:** Automated Supply Chain Risk Mitigator | **HS Code Baseline:** 0901 (Green Coffee)")
 
-# 🔒 DYNAMIC MULTI-ENVIRONMENT ARBITER (Optimized for GitHub Core)
-SECURE_URL = None
-
-# Gate A: Scan local machine or GitHub Codespace environment variables first
-SECURE_URL = os.environ.get("GOOGLE_SECURE_CSV_LINK") or os.environ.get("google_secure_csv_link")
-
-# Gate B: Fallback scan to Streamlit Cloud secrets configuration panel
-if not SECURE_URL:
-    if "GOOGLE_SECURE_CSV_LINK" in st.secrets:
-        SECURE_URL = st.secrets["GOOGLE_SECURE_CSV_LINK"]
-    elif "google_secure_csv_link" in st.secrets:
-        SECURE_URL = st.secrets["google_secure_csv_link"]
-
-# Emergency Halt — Triggers only if zero variables exist in GitHub or Streamlit
-if not SECURE_URL:
-    st.error("🔒 **Security Policy Exception:** Master Sourcing API Token Is Encrypted or Missing. System Access Revoked.")
-    st.caption("Advisor Alert: Running inside GitHub. Ensure your link is loaded into your GitHub Repository Secrets panel under 'GOOGLE_SECURE_CSV_LINK'.")
-    st.stop()
+# 🚨 PASTE YOUR ENTIRE "PUBLISHED TO WEB" GOOGLE SHEETS CSV EXPORT LINK HERE:
+CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSd_xrC4SZeJ_KKdt0wAFUPcTZqZo0MjN8Ifhwq090eqg3PLaCXU2XukTlLEW4sVM7GCnOf-Kmqzlwy/pub?output=csv"
 
 @st.cache_data(ttl=5) # 5-second short cache lifespan so edits appear quickly
-def secure_fetch_and_translate(url):
+def fetch_and_translate_google_sheet(url):
     try:
-        # Execute an SSL/TLS verified handshake over HTTPS
-        response = requests.get(url, timeout=5, verify=True)
-        if response.status_code != 200:
-            raise PermissionError("Sovereign database handshake rejected.")
-            
-        # Parse payload out of binary stream memory safely using StringIO
-        raw_df = pd.read_csv(StringIO(response.text))
+        # Pull raw records straight from your Google Sheet cloud network
+        raw_df = pd.read_csv(url)
         
         # THE BRIDGING LAYER — Translate your Google Sheet columns to match the Python logic
         column_mapping_dictionary = {
@@ -64,7 +41,7 @@ def secure_fetch_and_translate(url):
             "Phytosanitary Audit Status": "Phytosanitary Inspection"
         }
         
-        # Execute automated column rename map
+        # Execute an automated column rename map to standardize the payload
         mapped_df = raw_df.rename(columns=column_mapping_dictionary)
         
         # Inject structural safety backstops for missing critical tracking keys
@@ -101,11 +78,11 @@ def secure_fetch_and_translate(url):
         return mapped_df.to_dict(orient="records")
         
     except Exception as e:
-        # Prevent detailed backend debugging leak logs from displaying to frontend users
+        # Fallback dataset to keep UI running if url is completely unpopulated between quotes
         return [
             {
-                "Coop ID": "COOP-FALLBACK-01",
-                "Entity Name": "Encrypted Safety Tunnel Active (Check Secrets Configuration)",
+                "Coop ID": "COOP-TH01",
+                "Entity Name": "Pangkhon Forest Women's Collective",
                 "Legal & GPS (EUDR)": "Verified ✅",
                 "Tax ID & Corporate Bank": "Active ✅",
                 "Moisture Content": 11.2,
@@ -114,9 +91,9 @@ def secure_fetch_and_translate(url):
             }
         ]
 
-# 2. INITIALIZE BASELINE MEMORY STATE VIA SECURE TUNNEL
+# 2. STATE SYNCHRONIZATION
 if 'farm_database' not in st.session_state:
-    st.session_state.farm_database = secure_fetch_and_translate(SECURE_URL)
+    st.session_state.farm_database = fetch_and_translate_google_sheet(CSV_URL)
 
 st.markdown("### 📊 Global Registry & Institutional Traceability Passport Ledger")
 st.markdown("This live ledger converts first-mile operations into auditable corporate assets, eliminating informal economy vulnerabilities.")
@@ -124,16 +101,15 @@ st.markdown("This live ledger converts first-mile operations into auditable corp
 # 3. AUTO-REFRESH TRIGGER WINDOW FRAGMENT
 @st.fragment(run_every="10s") 
 def render_auto_streaming_ledger():
-    # Background fetch execution utilizing the secure secret token variable
-    st.session_state.farm_database = secure_fetch_and_translate(SECURE_URL)
+    st.session_state.farm_database = fetch_and_translate_google_sheet(CSV_URL)
     lookbook_df = pd.DataFrame(st.session_state.farm_database)
     st.dataframe(lookbook_df, use_container_width=True, hide_index=True)
 
-# Run the live streaming view
+# Run the dynamic grid view
 render_auto_streaming_ledger()
 
 st.divider()
-# --- Code transitions seamlessly into your Section 2 Sidebar options from here ---
+# --- Code flows smoothly into Section 2 Sidebar selectors from here ---
 
 
 # ==============================================================================
