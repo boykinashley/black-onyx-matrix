@@ -1,5 +1,5 @@
 # ==============================================================================
-# PART 1: CONFIGURATION & PRODUCTION-LOCKED SECURE ENVIRONMENT VAULT
+# PART 1: CONFIGURATION & RESILIENT VAULT INJECTION LAYER
 # ==============================================================================
 import os
 import requests
@@ -21,21 +21,26 @@ st.title("🛡️ BLACK ONYX × LEOLA ADVISORY: AUTOMATED EXEC ADVISOR")
 st.subheader("Continuous Transaction Controls (CTC) & First-Mile Compliance Engine")
 st.write("**System Architecture:** Automated Supply Chain Risk Mitigator | **HS Code Baseline:** 0901 (Green Coffee)")
 
-# 🔒 ENCRYPTED ENVIRONMENTAL VAULT INJECTION
-# This completely seals your pipeline. No cleartext URLs are exposed in the source code.
+# 🔒 DYNAMIC MULTI-KEY VAULT ARBITER
+# This protects your system from naming inconsistencies across local and cloud environments
+SECURE_URL = None
+
+# Step 1: Scan Streamlit secrets using case-insensitive validation
 if "GOOGLE_SECURE_CSV_LINK" in st.secrets:
     SECURE_URL = st.secrets["GOOGLE_SECURE_CSV_LINK"]
-else:
-    # Strict fail-safe condition for local testing or initial container boot-ups
-    try:
-        # Check if running locally with an encrypted system environment variable
-        SECURE_URL = os.environ["GOOGLE_SECURE_CSV_LINK"]
-    except KeyError:
-        st.error("🔒 **Security Policy Exception:** Master Sourcing API Token Is Encrypted or Missing. System Access Revoked.")
-        st.caption("Advisor Alert: Ensure your private link is securely loaded into the Streamlit Cloud Secrets console or your local .streamlit/secrets.toml file.")
-        st.stop() # Halts all execution immediately to prevent trace data leaks
+elif "google_secure_csv_link" in st.secrets:
+    SECURE_URL = st.secrets["google_secure_csv_link"]
+    
+# Step 2: If secrets are blank, scan your local system environment variables
+if not SECURE_URL:
+    SECURE_URL = os.environ.get("GOOGLE_SECURE_CSV_LINK") or os.environ.get("google_secure_csv_link")
 
-# The application now reads data safely from SECURE_URL over an encrypted tunnel.
+# Step 3: Emergency Break — Only triggers if absolutely zero variables are found
+if not SECURE_URL:
+    st.error("🔒 **Security Policy Exception:** Master Sourcing API Token Is Encrypted or Missing. System Access Revoked.")
+    st.caption("Advisor Alert: Ensure your private link is securely loaded into the Streamlit Cloud Secrets console or your local .streamlit/secrets.toml file.")
+    st.stop()
+
 
 
 @st.cache_data(ttl=5) # 5-second short cache lifespan so edits appear quickly
