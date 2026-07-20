@@ -8,27 +8,25 @@ from datetime import datetime
 from supabase import create_client, Client
 
 # ==============================================================================
-# PART 1: SECURE VAULT INITIALIZATION & CLOUD DATABASE CONNECTION
+# PART 1: RESILIENT HYBRID CLOUD CONNECTION LAYER (REPLACE MASTER INITIALIZATION)
 # ==============================================================================
-st.set_page_config(
-    page_title="Black Onyx Advisor Terminal", 
-    layout="wide", 
-    page_icon="🛡️"
-)
+# Vault Gate A: Scan your Streamlit Cloud web dashboard box first
+if "SUPABASE_URL" in st.secrets and "SUPABASE_SERVICE_ROLE_KEY" in st.secrets:
+    FINAL_URL = st.secrets["SUPABASE_URL"]
+    FINAL_KEY = st.secrets["SUPABASE_SERVICE_ROLE_KEY"]
+else:
+    # 🚨 SYSTEM BACKUP GATEWAY: If the cloud vault is lagging, read directly from these strings
+    # Paste your active credentials between the quotation marks below right now:
+    FINAL_URL = "https://supabase.co"
+    FINAL_KEY = "paste_your_long_revealed_secret_service_role_api_key_here"
 
-st.title("🛡️ BLACK ONYX × LEOLA ADVISORY: AUTOMATED EXEC ADVISOR")
-st.subheader("Decoupled 3-Tier Enterprise Architecture Node")
-st.write("**Corporate Horizon:** Black Onyx Advisory × Leola Advisory | **Stewardship Mission:** Planted by Grace")
-
-# Secure connection layer using your master administrative service role key
+# Initialize your administrative master client securely
 try:
-    SUPABASE_URL = st.secrets["SUPABASE_URL"]
-    SUPABASE_KEY = st.secrets["SUPABASE_SERVICE_ROLE_KEY"] # Master bypass token
-    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-except Exception:
-    st.error("🔒 **Security Vault Exception:** Active Cloud Database Credentials Missing or Invalid.")
-    st.caption("Advisor Alert: Ensure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are loaded into your secrets manager.")
+    supabase: Client = create_client(FINAL_URL, FINAL_KEY)
+except Exception as e:
+    st.error(f"🔒 **Security Policy Exception:** Master Sourcing API Handshake Broken: {str(e)}")
     st.stop()
+
 
 @st.cache_data(ttl=2) # 2-second quick cache refresh lifespan
 def stream_live_ledger_from_supabase():
