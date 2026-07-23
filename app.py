@@ -27,8 +27,8 @@ if "SUPABASE_URL" in st.secrets and "SUPABASE_SERVICE_ROLE_KEY" in st.secrets:
     FINAL_KEY = st.secrets["SUPABASE_SERVICE_ROLE_KEY"]
 else:
     # 🚨 SYSTEM BACKUP GATEWAY: Local/Codespace String Ingress Fallback
-    FINAL_URL = "https://supabase.co"
-    FINAL_KEY = "your-master-secret-service-role-api-key-string"
+    FINAL_URL = "https://mdyoxirhdufdskytcmst.supabase.co"
+    FINAL_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1keW94aXJoZHVmZHNreXRjbXN0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NDUyMTk5NSwiZXhwIjoyMTAwMDk3OTk1fQ.d9AWBTABD4-gvKnFtGT5vNyd2uKJHvOSMeCPRRPXve8"
 
 try:
     supabase: Client = create_client(FINAL_URL, FINAL_KEY)
