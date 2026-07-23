@@ -148,7 +148,7 @@ if current_role == "1. Discovery & Diagnostic Panel":
         annual_port_loss = estimated_mishaps * (delay_days * 400.00)
         total_leakage = annual_rework_loss + annual_port_loss
 
-                col_loss1, col_loss2 = st.columns(2)
+        col_loss1, col_loss2 = st.columns(2)
         with col_loss1: 
             st.metric(
                 label="Annual Capital Lost to Administrative Re-Work", 
