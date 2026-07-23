@@ -148,10 +148,23 @@ if current_role == "1. Discovery & Diagnostic Panel":
         annual_port_loss = estimated_mishaps * (delay_days * 400.00)
         total_leakage = annual_rework_loss + annual_port_loss
 
-        col_loss1, col_loss2 = st.columns(2)
-        with col_loss1: st.metric("Annual Capital Lost to Administrative Re-Work", f"${annual_rework_loss:,.2f} USD", delta="Wasted Staff Hours", delta_color="normal", key="p1_loss_metric1")
-        with col_loss2: st.metric("Annual Port Delay & Storage Penalty Exposure", f"${annual_port_loss:,.2f} USD", delta="Demurrage Risk", delta_color="inverse", key="p1_loss_metric2")
-        st.markdown(f"#### Total Estimated Cost of Paperwork Disjointedness: :red[**${total_leakage:,.2f} USD / Year**]")
+                col_loss1, col_loss2 = st.columns(2)
+        with col_loss1: 
+            st.metric(
+                label="Annual Capital Lost to Administrative Re-Work", 
+                value=f"${annual_rework_loss:,.2f} USD", 
+                delta="Wasted Staff Hours", 
+                delta_color="normal",
+                key="p1_loss_metric1_fixed"
+            )
+        with col_loss2: 
+            st.metric(
+                label="Annual Port Delay & Storage Penalty Exposure", 
+                value=f"${annual_port_loss:,.2f} USD", 
+                delta="Demurrage Risk", 
+                delta_color="normal",
+                key="p1_loss_metric2_fixed"
+            )
 
 # PANEL 2: THE COOPERATIVE ANCHOR WORKSPACE
 elif current_role == "2. Cooperative Representative":
