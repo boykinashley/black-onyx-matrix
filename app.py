@@ -245,7 +245,7 @@ elif current_role == "4. Logistics & Customs Broker":
 ### **Section 4: Universal Footers (Panels 5 & 6: Arbitrage, Exceptions, & Matrix)**
 ### *Paste this as the final block at the absolute bottom of your file. This mounts your arbitrage engines, automated exceptions, document vaults, and the matrix checker universally underneath the workflow screens.* ###
 
-```python
+
 # ==============================================================================
 # PART 4: UNIVERSALLY MOUNTED OPERATIONAL FOOTER WORKSPACES
 # ==============================================================================
