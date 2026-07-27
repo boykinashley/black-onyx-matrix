@@ -309,7 +309,7 @@ elif current_role == "4. Logistics & Customs Broker":
                     st.success("Carrier mapped successfully! Telemetry stream is active.")
                     st.rerun()
 
-        # --- PHASE 5: US CUSTOMS AUTOMATED FORM 3461 payload ---
+               # --- PHASE 5: US CUSTOMS AUTOMATED FORM 3461 payload ---
         elif st.session_state.current_step == 5:
             st.subheader("📋 Phase 5: US Customs Entry Processing Engine")
             st.write("Avoid manual data-entry fatigue. Extract verified historical stakeholder parameters with one-click.")
@@ -331,15 +331,77 @@ elif current_role == "4. Logistics & Customs Broker":
                     entry_num_input = st.text_input("Block 1: Entry Number String (Format: XXX-XXXXXXX-X)", value="123-4567890-1")
                     
                     submit_5 = st.form_submit_button("Transmit Document Payload to US CBP ACE Portal")
+                    
                     if submit_5:
                         entry_pattern = r"^\d{3}-\d{7}-\d{1}$"
                         if not re.match(entry_pattern, entry_num_input):
                             st.error("❌ **Format Exception (Block 1):** Entry Number must follow the standard US Customs 11-digit hyphenated structure (e.g., 123-4567890-1).")
                         else:
                             st.session_state.workflow_data["entry_num"] = entry_num_input
-                            st.session_state.current_step = 6
-                            st.success("Electronic Border Release Granted! Moving to final settlement.")
-                            st.rerun()
+                            
+                            # ==============================================================================
+                            # 🚏 NESTED ENGINE: TRUE CBP FORM 3461 PDF POPULATOR (PLACE HERE)
+                            # ==============================================================================
+                            try:
+                                # Read your physical blank template asset from your directory
+                                pdf_reader = PdfReader("cbp_3461_blank.pdf")
+                                pdf_writer = PdfWriter()
+                                pdf_writer.append(pdf_reader)
+
+                                # Map your Streamlit session inputs straight to the PDF's internal keys
+                                pdf_form_payload = {
+                                    "topmostSubform.Page1.EntryNum": str(entry_num_input),
+                                    "topmostSubform.Page1.EntryType": "01",
+                                    "topmostSubform.Page1.PortCode": "2704", 
+                                    "topmostSubform.Page1.ImporterNum": "12-345678900",
+                                    "topmostSubform.Page1.ImporterNameAddr": str(w.get('coop_name')),
+                                    "topmostSubform.Page1.Carrier": str(w.get('carrier_scac')),
+                                    "topmostSubform.Page1.BL_AWB": str(w.get('bill_of_lading')),
+                                    "topmostSubform.Page1.ContainerNum": str(w.get('container_num'))
+                                }
+
+                                # Inject data arrays directly into the PDF template sheets
+                                pdf_writer.update_page_form_field_values(pdf_writer.pages, pdf_form_payload)
+
+                                # Compile the output into an in-memory byte block stream
+                                pdf_buffer = io.BytesIO()
+                                pdf_writer.write(pdf_buffer)
+                                pdf_buffer.seek(0)
+                                final_pdf_bytes = pdf_buffer.getvalue()
+
+                                st.success("🎉 Official US CBP Form 3461 Document Compiled Successfully!")
+                                
+                                # Render the visual interface tools for the broker inside the step context
+                                col_preview, col_dl = st.columns([1.5, 1])
+                                
+                                with col_preview:
+                                    st.markdown("#### **📄 Live Border Document Preview**")
+                                    base64_pdf = base64.b64encode(final_pdf_bytes).decode('utf-8')
+                                    pdf_iframe_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="600px" type="application/pdf"></iframe>'
+                                    st.markdown(pdf_iframe_display, unsafe_html=True)
+                                    
+                                with col_dl:
+                                    st.markdown("#### **🛂 Legal Customs Asset Handshake**")
+                                    st.write("Save this verified, filled PDF to submit directly to port authorities or archive for auditing.")
+                                    
+                                    st.download_button(
+                                        label="⬇️ Download Official Filled CBP 3461 PDF",
+                                        data=final_pdf_bytes,
+                                        file_name=f"Official_CBP_3461_Entry_{entry_num_input}.pdf",
+                                        mime="application/pdf",
+                                        key="true_government_pdf_download_button"
+                                    )
+                                    
+                                    # Safe state milestone update
+                                    st.session_state.current_step = 6
+                                    st.info("Milestone 5 complete. Scroll up to review step 6 settlement protocols.")
+
+                            except FileNotFoundError:
+                                st.error("❌ **Critical Deployment Error:** The template file 'cbp_3461_blank.pdf' was not detected in your folder directory.")
+                            except Exception as e:
+                                st.error(f"An unexpected document compiler error occurred: {e}")
+
+        
 
         # --- PHASE 6: DISBURSEMENT SETTLEMENT ---
         elif st.session_state.current_step == 6:
