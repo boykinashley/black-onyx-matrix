@@ -309,7 +309,7 @@ elif current_role == "4. Logistics & Customs Broker":
                     st.success("Carrier mapped successfully! Telemetry stream is active.")
                     st.rerun()
 
-               # --- PHASE 5: US CUSTOMS AUTOMATED FORM 3461 payload ---
+                # --- PHASE 5: US CUSTOMS AUTOMATED FORM 3461 payload ---
         elif st.session_state.current_step == 5:
             st.subheader("📋 Phase 5: US Customs Entry Processing Engine")
             st.write("Avoid manual data-entry fatigue. Extract verified historical stakeholder parameters with one-click.")
@@ -320,15 +320,22 @@ elif current_role == "4. Logistics & Customs Broker":
             
             st.write(f"CBP Form 3461 Status: **{w['cbp_3461_status']}**")
             
+            # Create a toggle state inside session memory to handle the form processing safely
+            if "pdf_generation_triggered" not in st.session_state:
+                st.session_state.pdf_generation_triggered = False
+            if "saved_entry_num" not in st.session_state:
+                st.session_state.saved_entry_num = "123-4567890-1"
+
             if w["cbp_3461_status"] != "Locked":
+                # --- SUBMISSION INPUT FORM (STRICTLY DATA INPUT ONLY) ---
                 with st.form("final_cbp_submission"):
                     st.markdown("### **Review Auto-Populated Document Elements**")
-                    st.text_input("Block 9: Importer Number (Auto-Populated)", value="12-345678900")
-                    st.text_input("Block 14: Country of Origin (Auto-Populated)", value="CO")
-                    st.text_input("Block 12: Bill of Lading ID (Auto-Populated)", value=w["bill_of_lading"])
+                    st.text_input("Block 9: Importer Number (Auto-Populated)", value="12-345678900", disabled=True)
+                    st.text_input("Block 14: Country of Origin (Auto-Populated)", value="CO", disabled=True)
+                    st.text_input("Block 12: Bill of Lading ID (Auto-Populated)", value=w["bill_of_lading"], disabled=True)
                     
                     st.markdown("### **Broker Action Required: Entry Registration**")
-                    entry_num_input = st.text_input("Block 1: Entry Number String (Format: XXX-XXXXXXX-X)", value="123-4567890-1")
+                    entry_num_input = st.text_input("Block 1: Entry Number String (Format: XXX-XXXXXXX-X)", value=st.session_state.saved_entry_num)
                     
                     submit_5 = st.form_submit_button("Transmit Document Payload to US CBP ACE Portal")
                     
@@ -336,71 +343,76 @@ elif current_role == "4. Logistics & Customs Broker":
                         entry_pattern = r"^\d{3}-\d{7}-\d{1}$"
                         if not re.match(entry_pattern, entry_num_input):
                             st.error("❌ **Format Exception (Block 1):** Entry Number must follow the standard US Customs 11-digit hyphenated structure (e.g., 123-4567890-1).")
+                            st.session_state.pdf_generation_triggered = False
                         else:
+                            # Safely pass values outside the form restriction gate
+                            st.session_state.saved_entry_num = entry_num_input
                             st.session_state.workflow_data["entry_num"] = entry_num_input
+                            st.session_state.pdf_generation_triggered = True
+
+                # ==============================================================================
+                # 🚏 SAFELY LIFTED OUTSIDE THE FORM: TRUE CBP FORM 3461 PDF ENGINE
+                # ==============================================================================
+                if st.session_state.pdf_generation_triggered:
+                    try:
+                        # Read your physical blank template asset from your directory
+                        pdf_reader = PdfReader("cbp_3461_blank.pdf")
+                        pdf_writer = PdfWriter()
+                        pdf_writer.append(pdf_reader)
+
+                        # Map your Streamlit session inputs straight to the PDF's internal keys
+                        pdf_form_payload = {
+                            "topmostSubform.Page1.EntryNum": str(st.session_state.saved_entry_num),
+                            "topmostSubform.Page1.EntryType": "01",
+                            "topmostSubform.Page1.PortCode": "2704", 
+                            "topmostSubform.Page1.ImporterNum": "12-345678900",
+                            "topmostSubform.Page1.ImporterNameAddr": str(w.get('coop_name')),
+                            "topmostSubform.Page1.Carrier": str(w.get('carrier_scac')),
+                            "topmostSubform.Page1.BL_AWB": str(w.get('bill_of_lading')),
+                            "topmostSubform.Page1.ContainerNum": str(w.get('container_num'))
+                        }
+
+                        # Inject data arrays directly into the PDF template sheets
+                        pdf_writer.update_page_form_field_values(pdf_writer.pages, pdf_form_payload)
+
+                        # Compile the output into an in-memory byte block stream
+                        pdf_buffer = io.BytesIO()
+                        pdf_writer.write(pdf_buffer)
+                        pdf_buffer.seek(0)
+                        final_pdf_bytes = pdf_buffer.getvalue()
+
+                        st.success("🎉 Official US CBP Form 3461 Document Compiled Successfully!")
+                        
+                        # Render visual split interface components cleanly
+                        col_preview, col_dl = st.columns([1.5, 1])
+                        
+                        with col_preview:
+                            st.markdown("#### **📄 Live Border Document Preview**")
+                            base64_pdf = base64.b64encode(final_pdf_bytes).decode('utf-8')
+                            pdf_iframe_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="600px" type="application/pdf"></iframe>'
+                            st.markdown(pdf_iframe_display, unsafe_html=True)
                             
-                            # ==============================================================================
-                            # 🚏 NESTED ENGINE: TRUE CBP FORM 3461 PDF POPULATOR (PLACE HERE)
-                            # ==============================================================================
-                            try:
-                                # Read your physical blank template asset from your directory
-                                pdf_reader = PdfReader("cbp_3461_blank.pdf")
-                                pdf_writer = PdfWriter()
-                                pdf_writer.append(pdf_reader)
+                        with col_dl:
+                            st.markdown("#### **🛂 Legal Customs Asset Handshake**")
+                            st.write("Save this verified, filled PDF to submit directly to port authorities or archive for auditing.")
+                            
+                            st.download_button(
+                                label="⬇️ Download Official Filled CBP 3461 PDF",
+                                data=final_pdf_bytes,
+                                file_name=f"Official_CBP_3461_Entry_{st.session_state.saved_entry_num}.pdf",
+                                mime="application/pdf",
+                                key="true_government_pdf_download_button"
+                            )
+                            
+                            if st.button("Proceed to Final Escrow Disbursement Milestone", key="move_to_step_6_final_action_btn"):
+                                st.session_state.current_step = 6
+                                st.session_state.pdf_generation_triggered = False # Clean state wrap
+                                st.rerun()
 
-                                # Map your Streamlit session inputs straight to the PDF's internal keys
-                                pdf_form_payload = {
-                                    "topmostSubform.Page1.EntryNum": str(entry_num_input),
-                                    "topmostSubform.Page1.EntryType": "01",
-                                    "topmostSubform.Page1.PortCode": "2704", 
-                                    "topmostSubform.Page1.ImporterNum": "12-345678900",
-                                    "topmostSubform.Page1.ImporterNameAddr": str(w.get('coop_name')),
-                                    "topmostSubform.Page1.Carrier": str(w.get('carrier_scac')),
-                                    "topmostSubform.Page1.BL_AWB": str(w.get('bill_of_lading')),
-                                    "topmostSubform.Page1.ContainerNum": str(w.get('container_num'))
-                                }
-
-                                # Inject data arrays directly into the PDF template sheets
-                                pdf_writer.update_page_form_field_values(pdf_writer.pages, pdf_form_payload)
-
-                                # Compile the output into an in-memory byte block stream
-                                pdf_buffer = io.BytesIO()
-                                pdf_writer.write(pdf_buffer)
-                                pdf_buffer.seek(0)
-                                final_pdf_bytes = pdf_buffer.getvalue()
-
-                                st.success("🎉 Official US CBP Form 3461 Document Compiled Successfully!")
-                                
-                                # Render the visual interface tools for the broker inside the step context
-                                col_preview, col_dl = st.columns([1.5, 1])
-                                
-                                with col_preview:
-                                    st.markdown("#### **📄 Live Border Document Preview**")
-                                    base64_pdf = base64.b64encode(final_pdf_bytes).decode('utf-8')
-                                    pdf_iframe_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="600px" type="application/pdf"></iframe>'
-                                    st.markdown(pdf_iframe_display, unsafe_html=True)
-                                    
-                                with col_dl:
-                                    st.markdown("#### **🛂 Legal Customs Asset Handshake**")
-                                    st.write("Save this verified, filled PDF to submit directly to port authorities or archive for auditing.")
-                                    
-                                    st.download_button(
-                                        label="⬇️ Download Official Filled CBP 3461 PDF",
-                                        data=final_pdf_bytes,
-                                        file_name=f"Official_CBP_3461_Entry_{entry_num_input}.pdf",
-                                        mime="application/pdf",
-                                        key="true_government_pdf_download_button"
-                                    )
-                                    
-                                    # Safe state milestone update
-                                    st.session_state.current_step = 6
-                                    st.info("Milestone 5 complete. Scroll up to review step 6 settlement protocols.")
-
-                            except FileNotFoundError:
-                                st.error("❌ **Critical Deployment Error:** The template file 'cbp_3461_blank.pdf' was not detected in your folder directory.")
-                            except Exception as e:
-                                st.error(f"An unexpected document compiler error occurred: {e}")
-
+                    except FileNotFoundError:
+                        st.error("❌ **Critical Deployment Error:** The template file 'cbp_3461_blank.pdf' was not detected in your folder directory.")
+                    except Exception as e:
+                        st.error(f"An unexpected document compiler error occurred: {e}")
         
 
         # --- PHASE 6: DISBURSEMENT SETTLEMENT ---
