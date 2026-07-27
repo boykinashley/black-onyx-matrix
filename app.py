@@ -309,7 +309,7 @@ elif current_role == "4. Logistics & Customs Broker":
                     st.success("Carrier mapped successfully! Telemetry stream is active.")
                     st.rerun()
 
-                # --- PHASE 5: US CUSTOMS AUTOMATED FORM 3461 payload ---
+        # --- PHASE 5: US CUSTOMS AUTOMATED FORM 3461 payload ---
         elif st.session_state.current_step == 5:
             st.subheader("📋 Phase 5: US Customs Entry Processing Engine")
             st.write("Avoid manual data-entry fatigue. Extract verified historical stakeholder parameters with one-click.")
@@ -414,7 +414,63 @@ elif current_role == "4. Logistics & Customs Broker":
                     except Exception as e:
                         st.error(f"An unexpected document compiler error occurred: {e}")
         
+                # ==============================================================================
+                # 🌧️ INTEGRATED: PANEL 5 CONTINGENCY ARBITRATOR & COMPLETE VAULT LIST
+                # ==============================================================================
+                st.divider()
+                col_left_exceptions, col_right_library = st.columns(2)
 
+                # --- LEFT COLUMN: LIVE SUPPLY CHAIN RISK SIMULATION ---
+                with col_left_exceptions:
+                    st.subheader("🚨 Ocean Transit Contingency Control")
+                    st.write("Simulate real-world supply chain exceptions to present your platform arbitration logic:")
+                    
+                    btn_c1, btn_c2, btn_c3 = st.columns(3)
+                    if btn_c1.button("🌧️ Weather / Storm at Sea", key="p5_storm_contingency_btn"):
+                        st.session_state.active_contingency = "Carrier Storm Delay"
+                    if btn_c2.button("🦠 Mold Found at Port", key="p5_mold_contingency_btn"):
+                        st.session_state.active_contingency = "Biological Failure"
+                    if btn_c3.button("☀️ Clean Voyage Tracker", key="p5_clean_contingency_btn"):
+                        st.session_state.active_contingency = "Clear Transit"
+                        
+                    st.markdown("##### **Automated Platform Referee Response:**")
+                    if st.session_state.active_contingency == "Carrier Storm Delay":
+                        st.warning("⚠️ **Schedule Disturbance Logged via Carrier Telemetry API**\n\n*Liability Ruling:* Under FOB terms, the Cooperative is not at fault. Escrow remains safely locked. Timeline adjustments automated.")
+                    elif st.session_state.active_contingency == "Biological Failure":
+                        st.error("❌ **Hygiene Failure Exception Tripped**\n\n*Liability Ruling:* Target moisture threshold breached. **Escrow Payout Suspended.** Funds queued for 100% buyer repayment loop.")
+                    else:
+                        st.success("🟢 **Telemetry Normal**\n\nContainer environment variables stable. Cargo routing smoothly.")
+
+                # --- RIGHT COLUMN: THE UN-SILOED COMPLETE DOCUMENT VAULT ---
+                with col_right_library:
+                    st.subheader("📂 Centralized Document Archive Vault")
+                    
+                    with st.expander("📄 Step 0: Origin Legal Framework"):
+                        st.markdown(f"**Cooperative Tax Identifier:** `{w.get('coop_tax_id', 'Awaiting Upload')}`\n\n**Deed Reference ID:** `{active_coop.get('legal_gps_eudr', 'Awaiting Onboarding')}`")
+                        
+                    with st.expander("🌾 Step 1: Crop Metric Logs"):
+                        st.markdown(f"**Pre-Loading Moisture Value:** `{w.get('lot_moisture', 12.0)}%`\n\n**Sensory Quality Score:** `{w_data.get('cupping_score', 84.5)} Points`")
+                        
+                    with st.expander("🔒 Step 2: Commercial Escrow Contract"):
+                        escrow_condition = "🔒 Funds Fully Locked & Secured ($85,000.00)" if w.get("escrow_funded") else "⏳ Awaiting Buyer Escrow Funding Deposit"
+                        st.markdown(f"**Transaction Settlement Condition:** `{escrow_condition}`")
+                        st.markdown(f"**Governing Contract Trade Framework:** `Incoterm: FOB (Free On Board)`")
+                        st.caption("💳 Financial Protection: Capital cannot clear to seller until all downstream border gates pass.")
+
+                    with st.expander("🔬 Step 3: Biosecurity Clearance"):
+                        st.markdown(f"**Phytosanitary Serial:** `{w.get('phyto_serial', 'Awaiting Exporter Action')}`")
+                        
+                    with st.expander("🚢 Step 4: Ocean Carrier Freight Manifest"):
+                        st.markdown(f"**Assigned Ocean Container ID:** `{w.get('container_num', 'Awaiting Port Loading')}`")
+                        st.markdown(f"**Carrier SCAC Code Line:** `{w.get('carrier_scac', 'Pending Carrier Allocation')}`")
+                        st.markdown(f"**Master Bill of Lading (B/L) String:** `{w.get('bill_of_lading', 'Pending Freight Release')}`")
+                        st.caption("📍 Telemetry: Container links to live tracking telemetry systems.")
+
+                    with st.expander("📋 Step 5: Border Documentation (CBP 3461)"):
+                        st.markdown(f"**Ocean Container Assignment ID:** `{w.get('container_num', 'Awaiting Loading')}`")
+                        st.markdown(f"**ACE Transmit Status:** `{w.get('cbp_3461_status', 'Locked')}`")
+
+        
         # --- PHASE 6: DISBURSEMENT SETTLEMENT ---
         elif st.session_state.current_step == 6:
             st.subheader("🎉 Phase 6: Smart Escrow Release & Settlement")
