@@ -258,87 +258,232 @@ elif current_role == "4. Logistics & Customs Broker":
 ### **Section 4: Universal Footers (Panels 5 & 6: Arbitrage, Exceptions, & Matrix)**
 ### *Paste this as the final block at the absolute bottom of your file. This mounts your arbitrage engines, automated exceptions, document vaults, and the matrix checker universally underneath the workflow screens.* ###
 
+# ==============================================================================
+# 🚢 PANEL 4: LOGISTICS & CUSTOMS BROKER WORKSPACE
+# ==============================================================================
+elif current_role == "4. Logistics & Customs Broker":
+    st.title("🚢 Supply Chain Logistics & Customs Integration Engine")
+    w = st.session_state.workflow_data
+    
+    if st.session_state.current_step < 3:
+        st.warning("⏳ **Awaiting Transaction:** This workspace unlocks sequentially once a buyer executes an escrow contract.")
+    else:
+        st.markdown("#### **📍 Live Operational Milestone Tracker**")
+        st.write(f"Active Lifecycle Status Code: **Phase {st.session_state.current_step}**")
+        
+        # --- PHASE 3: BIOLOGICAL HEALTH CERTIFICATE INTAKE ---
+        if st.session_step == 3:
+            st.subheader("🔬 Phase 3: Phytosanitary Procurement Work Area")
+            st.info("The app provides structured data panels below. Copy these parameters into your local Single Window portal.")
+            
+            col_p_data, col_p_upload = st.columns(2)
+            with col_p_data:
+                st.write(f"**Applicant Entity:** {w['coop_name']}")
+                st.write(f"**Origin Land Deed Reference:** {active_coop.get('legal_gps_eudr')}")
+                st.write(f"**Moisture Integrity Baseline:** {w['lot_moisture']}%")
+            with col_p_upload:
+                with st.form("step3_form_broker"):
+                    p_serial = st.text_input("Official Phytosanitary Certificate String", value="PHYTO-CO-2026-991A")
+                    st.file_uploader("Upload Government Issued Signed Certificate PDF", type=["pdf"])
+                    submit_3 = st.form_submit_button("Verify Biological Health Certification")
+                    if submit_3 and p_serial:
+                        st.session_state.workflow_data["phyto_serial"] = p_serial
+                        st.session_state.current_step = 4
+                        st.success("Health logs saved. Moving to Carrier Gate-In Phase.")
+                        st.rerun()
+
+        # --- PHASE 4: PORT AND CARRIER ALLOCATION ---
+        elif st.session_state.current_step == 4:
+            st.subheader("⚓ Phase 4: Ocean Carrier Allocation")
+            with st.form("step4_carrier_form"):
+                container_input = st.text_input("Ocean Container Tracking ID (4 Letters + 7 Digits)", value="MSKU1192843")
+                carrier_input = st.selectbox("Ocean Steamship Carrier SCAC Line:", ["MAEU (Maersk Line)", "MSCU (Mediterranean Shipping)", "CMAC (CMA CGM)"])
+                bl_input = st.text_input("Bill of Lading (B/L) Reference ID", value="BL-Msk-883921")
+                
+                submit_4 = st.form_submit_button("Map Carrier API Telemetry")
+                if submit_4 and container_input and bl_input:
+                    st.session_state.workflow_data["container_num"] = container_input
+                    st.session_state.workflow_data["carrier_scac"] = carrier_input
+                    st.session_state.workflow_data["bill_of_lading"] = bl_input
+                    st.session_state.current_step = 5
+                    st.success("Carrier mapped successfully! Telemetry stream is active.")
+                    st.rerun()
+
+        # --- PHASE 5: US CUSTOMS AUTOMATED FORM 3461 payload ---
+        elif st.session_state.current_step == 5:
+            st.subheader("📋 Phase 5: US Customs Entry Processing Engine")
+            st.write("Avoid manual data-entry fatigue. Extract verified historical stakeholder parameters with one-click.")
+            
+            if st.button("⚡ Fetch & Pre-fill CBP Form 3461 Schema", key="p4_fetch_3461_schema_btn"):
+                st.session_state.workflow_data["cbp_3461_status"] = "Compiled via Platform API — Zero Typo Risk"
+                st.success("Consolidated Step 0 Tax Framework, Step 1 Moisture Log, Step 3 Phyto Serial, and Step 4 Container ID.")
+            
+            st.write(f"CBP Form 3461 Status: **{w['cbp_3461_status']}**")
+            
+            if w["cbp_3461_status"] != "Locked":
+                with st.form("final_cbp_submission"):
+                    st.markdown("### **Review Auto-Populated Document Elements**")
+                    st.text_input("Block 9: Importer Number (Auto-Populated)", value="12-345678900")
+                    st.text_input("Block 14: Country of Origin (Auto-Populated)", value="CO")
+                    st.text_input("Block 12: Bill of Lading ID (Auto-Populated)", value=w["bill_of_lading"])
+                    
+                    st.markdown("### **Broker Action Required: Entry Registration**")
+                    entry_num_input = st.text_input("Block 1: Entry Number String (Format: XXX-XXXXXXX-X)", value="123-4567890-1")
+                    
+                    submit_5 = st.form_submit_button("Transmit Document Payload to US CBP ACE Portal")
+                    if submit_5:
+                        entry_pattern = r"^\d{3}-\d{7}-\d{1}$"
+                        if not re.match(entry_pattern, entry_num_input):
+                            st.error("❌ **Format Exception (Block 1):** Entry Number must follow the standard US Customs 11-digit hyphenated structure (e.g., 123-4567890-1).")
+                        else:
+                            st.session_state.workflow_data["entry_num"] = entry_num_input
+                            st.session_state.current_step = 6
+                            st.success("Electronic Border Release Granted! Moving to final settlement.")
+                            st.rerun()
+
+        # --- PHASE 6: DISBURSEMENT SETTLEMENT ---
+        elif st.session_state.current_step == 6:
+            st.subheader("🎉 Phase 6: Smart Escrow Release & Settlement")
+            st.balloons()
+            st.success("🏆 Delivery Confirmed! The pipeline has completed with an unbroken data trail.")
+            st.write("🟢 **$85,000.00 USD** transferred securely from Escrow directly to the Cooperative's banking profile.")
+            
+            if st.button("🔄 Reset Engine Pipeline for New Demo Session", key="p4_reset_pipeline_btn"):
+                st.session_state.current_step = 0
+                st.session_state.workflow_data = {
+                    "coop_name": "Andean Coffee Co-Op", "coop_tax_id": "", "land_title_num": "", 
+                    "lot_moisture": 12.0, "cupping_score": 84.5, "escrow_funded": False, "phyto_serial": "", 
+                    "container_num": "", "carrier_scac": "", "bill_of_lading": "", "entry_num": "", "cbp_3461_status": "Locked"
+                }
+                st.rerun()
 
 # ==============================================================================
-# PART 4: UNIVERSALLY MOUNTED OPERATIONAL FOOTER WORKSPACES
+# 🌧️ PANEL 5: CONTINGENCY ARBITRATOR & LIBRARY EXPANDERS
 # ==============================================================================
+# Only display this operational telemetry tracker if you are past the diagnostic onboarding view
 if current_role != "1. Discovery & Diagnostic Panel":
-    # 📈 THE EXPANDED VALUATION PROTECTION FINANCIAL ENGINE
-    st.divider()
-    st.markdown("### 🏆 Premium Valuation & Market Arbitrage Engine")
-    calc_col1, calc_col2 = st.columns(2)
-    with calc_col1:
-        st.markdown("##### 🎛️ Quality & Volume Variables")
-        input_sca_score = st.slider("Verified Independent SCA Cup Score:", 75.0, 95.0, 84.5, step=0.5, key="premium_sca_slider")
-        input_lot_bags = st.number_input("Isolated Residual Lot Volume (Standard 60KG Bags):", min_value=1, max_value=500, value=100, key="premium_volume_input")
-        st.caption("Baseline Commodity Index Market Target Floor: **$2.25 / LB**")
-    with calc_col2:
-        st.markdown("##### 💰 Dynamic Revenue Capture Analytics")
-        if st.session_state.current_step < 4:
-            tier_status = "Awaiting Core Ingress Checks (Commodity Liquidation Default)"
-            quality_premium = 0.00; penalty = 0.45
-        else:
-            penalty = 0.00
-            tier_status = "Exotic Micro-Lot Portfolio (Premium Tier 1)" if input_sca_score >= 88.0 else "Fine Specialty Grade (Premium Tier 2)" if input_sca_score >= 85.0 else "Standard Specialty Grade (Premium Tier 3)"
-            quality_premium = 3.75 if input_sca_score >= 88.0 else 1.95 if input_sca_score >= 85.0 else 0.60
-        
-        lbs = input_lot_bags * 132.277
-        settlement_price = (2.25 + quality_premium) - penalty
-        comm_val = lbs * (1.80 if st.session_state.current_step < 4 else 2.25)
-        spec_val = lbs * settlement_price
-        net_won = max(0.0, spec_val - comm_val)
-        
-        st.write(f"• **Assigned Market Sourcing Tier:** `{tier_status}`\n• **Final Settlement Price:** `${settlement_price:.2f} / LB` (Includes +${quality_premium:.2f} Premium)")
-        v1, v2 = st.columns(2)
-        v1.metric("Total Optimized Contract Value", f"${spec_val:,.2f}")
-        v2.metric("Trapped Revenue Unlocked by Black Onyx", f"${net_won:,.2f}", delta=f"+{((net_won/comm_val)*100 if comm_val > 0 else 0):.1f}% Margin")
-
-    # 🌧️ PANEL 5: CONTINGENCY ARBITRATOR & LIBRARY EXPANDERS
     st.divider()
     col_left_exceptions, col_right_library = st.columns(2)
+
     with col_left_exceptions:
         st.subheader("🚨 Ocean Transit Contingency Control")
         st.write("Simulate real-world supply chain exceptions to present your platform arbitration logic:")
-        btn_c1, btn_c2, btn_c3 = st.columns(3)
-        if btn_c1.button("🌧️ Weather / Storm at Sea", key="p5_storm_contingency_btn"): st.session_state.active_contingency = "Carrier Storm Delay"
-        if btn_c2.button("🦠 Mold Found at Port", key="p5_mold_contingency_btn"): st.session_state.active_contingency = "Biological Failure"
-        if btn_c3.button("☀️ Clean Voyage Tracker", key="p5_clean_contingency_btn"): st.session_state.active_contingency = "Clear Transit"
         
+        btn_c1, btn_c2, btn_c3 = st.columns(3)
+        if btn_c1.button("🌧️ Weather / Storm at Sea", key="p5_storm_contingency_btn"):
+            st.session_state.active_contingency = "Carrier Storm Delay"
+        if btn_c2.button("🦠 Mold Found at Port", key="p5_mold_contingency_btn"):
+            st.session_state.active_contingency = "Biological Failure"
+        if btn_c3.button("☀️ Clean Voyage Tracker", key="p5_clean_contingency_btn"):
+            st.session_state.active_contingency = "Clear Transit"
+            
         st.markdown("##### **Automated Platform Referee Response:**")
-        if st.session_state.active_contingency == "Carrier Storm Delay": st.warning("⚠️ **Schedule Disturbance Logged via Carrier Telemetry API**\n\n*Liability Ruling:* Under FOB terms, the Cooperative is not at fault. Escrow remains safely locked. Timeline adjustments automated.")
-        elif st.session_state.active_contingency == "Biological Failure": st.error("❌ **Hygiene Failure Exception Tripped**\n\n*Liability Ruling:* Target moisture threshold breached. **Escrow Payout Suspended.** Funds queued for 100% buyer repayment loop.")
-        else: st.success("🟢 **Telemetry Normal**\n\nContainer environment variables stable. Cargo routing smoothly.")
+        if st.session_state.active_contingency == "Carrier Storm Delay":
+            st.warning("⚠️ **Schedule Disturbance Logged via Carrier Telemetry API**\n\n*Liability Ruling:* Under FOB terms, the Cooperative is not at fault. Escrow remains safely locked. Timeline adjustments automated.")
+        elif st.session_state.active_contingency == "Biological Failure":
+            st.error("❌ **Hygiene Failure Exception Tripped**\n\n*Liability Ruling:* Target moisture threshold breached. **Escrow Payout Suspended.** Funds queued for 100% buyer repayment loop.")
+        else:
+            st.success("🟢 **Telemetry Normal**\n\nContainer environment variables stable. Cargo routing smoothly.")
 
     with col_right_library:
         st.subheader("📂 Centralized Document Archive Vault")
         w_data = st.session_state.workflow_data
-        with st.expander("📄 Step 0: Origin Legal Framework"): st.markdown(f"**Cooperative Tax Identifier:** `{w_data.get('coop_tax_id', 'Awaiting Upload')}`\n\n**Deed Reference ID:** `{w_data.get('land_title_num', 'Awaiting Onboarding')}`")
-        with st.expander("🌾 Step 1: Crop Metric Logs"): st.markdown(f"**Pre-Loading Moisture Value:** `{w_data.get('lot_moisture', 'Awaiting Input')}`\n\n**Sensory Quality Score:** `{w_data.get('cupping_score', 0.0)} Points`")
-        with st.expander("🔬 Step 3: Biosecurity Clearance"): st.markdown(f"**Phytosanitary Serial:** `{w_data.get('phyto_serial', 'Awaiting Exporter Action')}`")
-        with st.expander("📋 Step 5: Border Documentation (CBP 3461)"): st.markdown(f"**Ocean Container Assignment ID:** `{w_data.get('container_num', 'Awaiting Loading')}`\n\n**ACE Transmit Status:** `{w_data.get('cbp_3461_status', 'Locked')}`")
+        
+        with st.expander("📄 Step 0: Origin Legal Framework"):
+            st.markdown(f"**Cooperative Tax Identifier:** `{w_data.get('coop_tax_id', 'Awaiting Upload')}`\n\n**Deed Reference ID:** `{active_coop.get('legal_gps_eudr', 'Awaiting Onboarding')}`")
+        with st.expander("🌾 Step 1: Crop Metric Logs"):
+            st.markdown(f"**Pre-Loading Moisture Value:** `{w_data.get('lot_moisture', 12.0)}%`\n\n**Sensory Quality Score:** `{w_data.get('cupping_score', 0.0)} Points`")
+        with st.expander("🔬 Step 3: Biosecurity Clearance"):
+            st.markdown(f"**Phytosanitary Serial:** `{w_data.get('phyto_serial', 'Awaiting Exporter Action')}`")
+        with st.expander("📋 Step 5: Border Documentation (CBP 3461)"):
+            st.markdown(f"**Ocean Container Assignment ID:** `{w_data.get('container_num', 'Awaiting Loading')}`\n\n**ACE Transmit Status:** `{w_data.get('cbp_3461_status', 'Locked')}`")
 
-    # 🏁 PANEL 6: INTERACTIVE COMPETITIVE MATRIX VIEWER
-    st.divider(); st.markdown("## 🏁 The Sovereign Competitive Advantage")
+# ==============================================================================
+# 🏁 PANEL 6: INTERACTIVE COMPETITIVE MATRIX VIEWER & DATA PASSPORT EXPORT
+# ==============================================================================
+if current_role != "1. Discovery & Diagnostic Panel":
+    st.divider()
+    st.markdown("## 🏁 The Sovereign Competitive Advantage")
+
     competitor_grid = {
-        "Capability / Feature Milestone": ["🚜 Land Title Verification & GPS Mapping (Step 0)", "🌾 Crop Quality & Moisture Metrics Log (Step 1)", "☕ Visual Marketing Lookbook for Premium Buyers", "🔒 Secure Escrow Financial Checkout Backend", "🔬 Local Exporter Side-by-Side Data Pre-Fills", "🚢 Ocean Carrier Telemetry API Integration", "📋 Automated US Customs Entry Processing (CBP 3461)"],
-        "Traditional Field Apps (AgUnity / TerraTrac / Mergdata)": ["✅ Yes (Excellent field tools)", "✅ Yes (Agronomy focus)", "❌ No (Strictly auditing tools)", "❌ No (No built-in payment rails)", "❌ No (Data trapped in silos)", "❌ No (Blind to ocean transit)", "❌ No (Manual email loops)"],
-        "Our Sovereign Pipeline Engine": ["✅ Yes (Enformed Gatekeeper)", "✅ Yes (Bound to Lot Profile)", "🚀 Included (Drives New Sales)", "🚀 Included (Protects Capital)", "🚀 Included (Zero-Typo Workspaces)", "🚀 Included (Live Status Tracker)", "🏆 Included (One-Click Pre-Fill)"]
+        "Capability / Feature Milestone": [
+            "🚜 Land Title Verification & GPS Mapping (Step 0)", 
+            "🌾 Crop Quality & Moisture Metrics Log (Step 1)", 
+            "☕ Visual Marketing Lookbook for Premium Buyers", 
+            "🔒 Secure Escrow Financial Checkout Backend", 
+            "🔬 Local Exporter Side-by-Side Data Pre-Fills", 
+            "🚢 Ocean Carrier Telemetry API Integration", 
+            "📋 Automated US Customs Entry Processing (CBP 3461)"
+        ],
+        "Traditional Field Apps (AgUnity / TerraTrac / Mergdata)": [
+            "✅ Yes (Excellent field tools)", 
+            "✅ Yes (Agronomy focus)", 
+            "❌ No (Strictly auditing tools)", 
+            "❌ No (No built-in payment rails)", 
+            "❌ No (Data trapped in silos)", 
+            "❌ No (Blind to ocean transit)", 
+            "❌ No (Manual email loops)"
+        ],
+        "Our Sovereign Pipeline Engine": [
+            "✅ Yes (Enformed Gatekeeper)", 
+            "✅ Yes (Bound to Lot Profile)", 
+            "🚀 Included (Drives New Sales)", 
+            "🚀 Included (Protects Capital)", 
+            "🚀 Included (Zero-Typo Workspaces)", 
+            "🚀 Included (Live Status Tracker)", 
+            "🏆 Included (One-Click Pre-Fill)"
+        ]
     }
-    view_toggle = st.radio("Select Matrix Evaluation Scope:", ["Show Complete Ecosystem Grid", "Show Post-Farm Gate Gaps (Where Competitors Fail)"], key="p6_matrix_view_toggle_radio")
-    if view_toggle == "Show Complete Ecosystem Grid": st.dataframe(pd.DataFrame(competitor_grid), use_container_width=True, hide_index=True)
+
+    view_toggle = st.radio(
+        "Select Matrix Evaluation Scope:", 
+        ["Show Complete Ecosystem Grid", "Show Post-Farm Gate Gaps (Where Competitors Fail)"], 
+        key="p6_matrix_view_toggle_radio"
+    )
+
+    if view_toggle == "Show Complete Ecosystem Grid":
+        st.dataframe(pd.DataFrame(competitor_grid), use_container_width=True, hide_index=True)
     else:
         st.dataframe(pd.DataFrame(competitor_grid).iloc[2:], use_container_width=True, hide_index=True)
         st.warning("⚠️ **The Competitor Bottleneck:** Notice that traditional field apps stop entirely once the crop leaves the farm gate, dropping stakeholders back into the manual email mess.")
 
-    # US CBP 3461 PASSPORT TEXT DATA EXPORT (PART 6 SUB-NODE)
+    # --- PART 6 SUB-NODE: LAST-MILE PASSPORT TEXT DATA EXPORT ---
     st.divider()
-    st.markdown("### 🛂 Official Last-Mile Document Ingress Automation")
+    st.markdown("### ### 🛂 Official Last-Mile Document Ingress Automation")
     st.info("🏢 Application Database Data Captured")
-    st.markdown(f"- **Logged Entry ID:** `{active_coop.get('coop_id', 'COOP-LN01')}`\n- **Producer Business Entity:** `{active_coop.get('entity_name', w_data['coop_name'])}`\n- **Calculated Harmonized System Tariff Tag:** `HS Code 0901.11 (Green Coffee)`\n- **Active Biological Safety Pass Token:** `{active_coop.get('phytosanitary_inspection', 'Failed ❌')}`")
-    
-    if st.button("📥 Download Compiled CBP Form 3461 Text Passport Asset", key="p6_txt_passport_download_trigger_btn"):
-        export_passport_payload = f"==================================================\nBLACK ONYX COMPLIANCE PASSPORT COOP ID: {active_coop.get('coop_id', 'COOP-LN01')}\n==================================================\n- Score: {st.session_state.current_step} / 6 Milestones Passed\n- Sourcing Risk Value Protected: ${total_exposure_mitigated:,.2f} USD\n- Trapped Revenue Unlocked     : ${net_arbitrage_capital_won:,.2f} USD\n=================================================="
-        st.download_button(label="Click to save TXT Asset Payload", data=export_passport_payload, file_name=f"BlackOnyx_Compliance_Passport_{active_coop.get('coop_id', 'COOP-LN01')}.txt", mime="text/plain", key="bottom_download_passport_button_nested")
 
-st.divider()
-st.caption("🔒 Black Onyx Advisory Core Terminal. Protected under international trade database encryption protocols.")
+    # Safely unpack session variables or handle default calculations for fallback scenarios
+    val_protected = st.session_state.get("total_exposure_mitigated", 4200.00)
+    rev_unlocked = st.session_state.get("net_arbitrage_capital_won", 12500.00)
+
+    st.markdown(f"""
+    - **Logged Entry ID:** `{active_coop.get('coop_id', 'COOP-LN01')}`
+    - **Producer Business Entity:** `{active_coop.get('entity_name', w_data['coop_name'])}`
+    - **Calculated Harmonized System Tariff Tag:** `HS Code 0901.11 (Green Coffee)`
+    - **Active Biological Safety Pass Token:** `{active_coop.get('phytosanitary_inspection', 'Failed ❌')}`
+    """)
+
+    # Pre-compile text string block data payload
+    export_passport_payload = f"""==================================================
+    BLACK ONYX COMPLIANCE PASSPORT COOP ID: {active_coop.get('coop_id', 'COOP-LN01')}
+    ==================================================
+    - Score: {st.session_state.current_step} / 6 Milestones Passed
+    - Sourcing Risk Value Protected: ${val_protected:,.2f} USD
+    - Trapped Revenue Unlocked : ${rev_unlocked:,.2f} USD
+    =================================================="""
+
+    # Clean single-click downloader execution (Fixed your nested button runtime crash bug)
+    st.download_button(
+        label="📥 Download Compiled CBP Form 3461 Text Passport Asset", 
+        data=export_passport_payload, 
+        file_name=f"BlackOnyx_Compliance_Passport_{active_coop.get('coop_id', 'COOP-LN01')}.txt", 
+        mime="text/plain", 
+        key="bottom_download_passport_button_clean_execution"
+    )
+
+    st.divider()
+    st.caption("🔒 Black Onyx Advisory Core Terminal. Protected under international trade database encryption protocols.")
+
+
+
+
