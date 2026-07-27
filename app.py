@@ -454,6 +454,48 @@ elif current_role == "4. Logistics & Customs Broker":
                 with st.expander("🚢 Step 4: Ocean Carrier Freight Manifest"):
                     st.markdown(f"**Assigned Ocean Container ID:** `{w.get('container_num', 'Awaiting Port Loading')}`")
 
+                    # --- RIGHT COLUMN: THE UN-SILOED COMPLETE DOCUMENT VAULT ---
+            with col_right_library:
+                st.subheader("📂 Centralized Document Archive Vault")
+                
+                # SAFE LINK: Ensure we use the exact master session dictionary directly
+                vault_data = st.session_state.workflow_data
+                
+                with st.expander("📄 Step 0: Origin Legal Framework"):
+                    st.markdown(f"**Cooperative Tax Identifier:** `{vault_data.get('coop_tax_id', 'Awaiting Upload')}`\n\n**Deed Reference ID:** `{active_coop.get('legal_gps_eudr', 'Awaiting Onboarding')}`")
+                    
+                with st.expander("🌾 Step 1: Crop Metric Logs"):
+                    st.markdown(f"**Pre-Loading Moisture Value:** `{vault_data.get('lot_moisture', 12.0)}%`\n\n**Sensory Quality Score:** `{vault_data.get('cupping_score', 84.5)} Points`")
+                    
+                # =============================================================
+                # FIXED: STEP 2 COMMERCIAL ESCROW DATA HANDSHAKE
+                # =============================================================
+                with st.expander("🔒 Step 2: Commercial Escrow Contract"):
+                    if vault_data.get("escrow_funded") == True:
+                        escrow_condition = "🔒 Funds Fully Locked & Secured ($85,000.00)"
+                    else:
+                        escrow_condition = "⏳ Awaiting Buyer Escrow Funding Deposit"
+                    st.markdown(f"**Transaction Settlement Condition:** `{escrow_condition}`")
+                    st.markdown(f"**Governing Contract Trade Framework:** `Incoterm: FOB (Free On Board)`")
+                    st.caption("💳 Financial Protection: Capital cannot clear to seller until all downstream border gates pass.")
+
+                with st.expander("🔬 Step 3: Biosecurity Clearance"):
+                    st.markdown(f"**Phytosanitary Serial:** `{vault_data.get('phyto_serial', 'Awaiting Exporter Action')}`")
+                    
+                # =============================================================
+                # FIXED: STEP 4 OCEAN CARRIER MANDATORY FREIGHT MANIFEST
+                # =============================================================
+                with st.expander("🚢 Step 4: Ocean Carrier Freight Manifest"):
+                    st.markdown(f"**Assigned Ocean Container ID:** `{vault_data.get('container_num', 'Awaiting Port Loading')}`")
+                    st.markdown(f"**Carrier SCAC Code Line:** `{vault_data.get('carrier_scac', 'Pending Carrier Allocation')}`")
+                    st.markdown(f"**Master Bill of Lading (B/L) String:** `{vault_data.get('bill_of_lading', 'Pending Freight Release')}`")
+                    st.caption("📍 Telemetry: Container links to live tracking telemetry systems.")
+
+                with st.expander("📋 Step 5: Border Documentation (CBP 3461)"):
+                    st.markdown(f"**Ocean Container Assignment ID:** `{vault_data.get('container_num', 'Awaiting Loading')}`")
+                    st.markdown(f"**ACE Transmit Status:** `{vault_data.get('cbp_3461_status', 'Locked')}`")
+
+
         
         # --- PHASE 6: DISBURSEMENT SETTLEMENT ---
         elif st.session_state.current_step == 6:
