@@ -309,7 +309,7 @@ elif current_role == "4. Logistics & Customs Broker":
                     st.success("Carrier mapped successfully! Telemetry stream is active.")
                     st.rerun()
 
-        # --- PHASE 5: US CUSTOMS AUTOMATED FORM 3461 payload ---
+               # --- PHASE 5: US CUSTOMS AUTOMATED FORM 3461 payload ---
         elif st.session_state.current_step == 5:
             st.subheader("📋 Phase 5: US Customs Entry Processing Engine")
             st.write("Avoid manual data-entry fatigue. Extract verified historical stakeholder parameters with one-click.")
@@ -320,155 +320,139 @@ elif current_role == "4. Logistics & Customs Broker":
             
             st.write(f"CBP Form 3461 Status: **{w['cbp_3461_status']}**")
             
-            # Create a toggle state inside session memory to handle the form processing safely
+            # Initialize processing states safely in session memory
             if "pdf_generation_triggered" not in st.session_state:
                 st.session_state.pdf_generation_triggered = False
             if "saved_entry_num" not in st.session_state:
                 st.session_state.saved_entry_num = "123-4567890-1"
 
-            if w["cbp_3461_status"] != "Locked":
-                # --- SUBMISSION INPUT FORM (STRICTLY DATA INPUT ONLY) ---
-                with st.form("final_cbp_submission"):
-                    st.markdown("### **Review Auto-Populated Document Elements**")
-                    st.text_input("Block 9: Importer Number (Auto-Populated)", value="12-345678900", disabled=True)
-                    st.text_input("Block 14: Country of Origin (Auto-Populated)", value="CO", disabled=True)
-                    st.text_input("Block 12: Bill of Lading ID (Auto-Populated)", value=w["bill_of_lading"], disabled=True)
-                    
-                    st.markdown("### **Broker Action Required: Entry Registration**")
-                    entry_num_input = st.text_input("Block 1: Entry Number String (Format: XXX-XXXXXXX-X)", value=st.session_state.saved_entry_num)
-                    
-                    submit_5 = st.form_submit_button("Transmit Document Payload to US CBP ACE Portal")
-                    
-                    if submit_5:
-                        entry_pattern = r"^\d{3}-\d{7}-\d{1}$"
-                        if not re.match(entry_pattern, entry_num_input):
-                            st.error("❌ **Format Exception (Block 1):** Entry Number must follow the standard US Customs 11-digit hyphenated structure (e.g., 123-4567890-1).")
-                            st.session_state.pdf_generation_triggered = False
-                        else:
-                            # Safely pass values outside the form restriction gate
-                            st.session_state.saved_entry_num = entry_num_input
-                            st.session_state.workflow_data["entry_num"] = entry_num_input
-                            st.session_state.pdf_generation_triggered = True
-
-                # ==============================================================================
-                # 🚏 SAFELY LIFTED OUTSIDE THE FORM: TRUE CBP FORM 3461 PDF ENGINE
-                # ==============================================================================
-                if st.session_state.pdf_generation_triggered:
-                    try:
-                        # Read your physical blank template asset from your directory
-                        pdf_reader = PdfReader("cbp_3461_blank.pdf")
-                        pdf_writer = PdfWriter()
-                        pdf_writer.append(pdf_reader)
-
-                        # Map your Streamlit session inputs straight to the PDF's internal keys
-                        pdf_form_payload = {
-                            "topmostSubform.Page1.EntryNum": str(st.session_state.saved_entry_num),
-                            "topmostSubform.Page1.EntryType": "01",
-                            "topmostSubform.Page1.PortCode": "2704", 
-                            "topmostSubform.Page1.ImporterNum": "12-345678900",
-                            "topmostSubform.Page1.ImporterNameAddr": str(w.get('coop_name')),
-                            "topmostSubform.Page1.Carrier": str(w.get('carrier_scac')),
-                            "topmostSubform.Page1.BL_AWB": str(w.get('bill_of_lading')),
-                            "topmostSubform.Page1.ContainerNum": str(w.get('container_num'))
-                        }
-
-                        # Inject data arrays directly into the PDF template sheets
-                        pdf_writer.update_page_form_field_values(pdf_writer.pages, pdf_form_payload)
-
-                        # Compile the output into an in-memory byte block stream
-                        pdf_buffer = io.BytesIO()
-                        pdf_writer.write(pdf_buffer)
-                        pdf_buffer.seek(0)
-                        final_pdf_bytes = pdf_buffer.getvalue()
-
-                        st.success("🎉 Official US CBP Form 3461 Document Compiled Successfully!")
-                        
-                        # Render visual split interface components cleanly
-                        col_preview, col_dl = st.columns([1.5, 1])
-                        
-                        with col_preview:
-                            st.markdown("#### **📄 Live Border Document Preview**")
-                            base64_pdf = base64.b64encode(final_pdf_bytes).decode('utf-8')
-                            pdf_iframe_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="600px" type="application/pdf"></iframe>'
-                            st.markdown(pdf_iframe_display, unsafe_html=True)
-                            
-                        with col_dl:
-                            st.markdown("#### **🛂 Legal Customs Asset Handshake**")
-                            st.write("Save this verified, filled PDF to submit directly to port authorities or archive for auditing.")
-                            
-                            st.download_button(
-                                label="⬇️ Download Official Filled CBP 3461 PDF",
-                                data=final_pdf_bytes,
-                                file_name=f"Official_CBP_3461_Entry_{st.session_state.saved_entry_num}.pdf",
-                                mime="application/pdf",
-                                key="true_government_pdf_download_button"
-                            )
-                            
-                            if st.button("Proceed to Final Escrow Disbursement Milestone", key="move_to_step_6_final_action_btn"):
-                                st.session_state.current_step = 6
-                                st.session_state.pdf_generation_triggered = False # Clean state wrap
-                                st.rerun()
-
-                    except FileNotFoundError:
-                        st.error("❌ **Critical Deployment Error:** The template file 'cbp_3461_blank.pdf' was not detected in your folder directory.")
-                    except Exception as e:
-                        st.error(f"An unexpected document compiler error occurred: {e}")
-        
-                # ==============================================================================
-                # 🌧️ INTEGRATED: PANEL 5 CONTINGENCY ARBITRATOR & COMPLETE VAULT LIST
-                # ==============================================================================
-                st.divider()
-                col_left_exceptions, col_right_library = st.columns(2)
-
-                # --- LEFT COLUMN: LIVE SUPPLY CHAIN RISK SIMULATION ---
-                with col_left_exceptions:
-                    st.subheader("🚨 Ocean Transit Contingency Control")
-                    st.write("Simulate real-world supply chain exceptions to present your platform arbitration logic:")
-                    
-                    btn_c1, btn_c2, btn_c3 = st.columns(3)
-                    if btn_c1.button("🌧️ Weather / Storm at Sea", key="p5_storm_contingency_btn"):
-                        st.session_state.active_contingency = "Carrier Storm Delay"
-                    if btn_c2.button("🦠 Mold Found at Port", key="p5_mold_contingency_btn"):
-                        st.session_state.active_contingency = "Biological Failure"
-                    if btn_c3.button("☀️ Clean Voyage Tracker", key="p5_clean_contingency_btn"):
-                        st.session_state.active_contingency = "Clear Transit"
-                        
-                    st.markdown("##### **Automated Platform Referee Response:**")
-                    if st.session_state.active_contingency == "Carrier Storm Delay":
-                        st.warning("⚠️ **Schedule Disturbance Logged via Carrier Telemetry API**\n\n*Liability Ruling:* Under FOB terms, the Cooperative is not at fault. Escrow remains safely locked. Timeline adjustments automated.")
-                    elif st.session_state.active_contingency == "Biological Failure":
-                        st.error("❌ **Hygiene Failure Exception Tripped**\n\n*Liability Ruling:* Target moisture threshold breached. **Escrow Payout Suspended.** Funds queued for 100% buyer repayment loop.")
+            # --- SUBMISSION INPUT FORM (STRICTLY DATA INPUT ONLY) ---
+            with st.form("final_cbp_submission"):
+                st.markdown("### **Review Auto-Populated Document Elements**")
+                st.text_input("Block 9: Importer Number (Auto-Populated)", value="12-345678900", disabled=True)
+                st.text_input("Block 14: Country of Origin (Auto-Populated)", value="CO", disabled=True)
+                st.text_input("Block 12: Bill of Lading ID (Auto-Populated)", value=w.get("bill_of_lading", "BL-PENDING"), disabled=True)
+                
+                st.markdown("### **Broker Action Required: Entry Registration**")
+                entry_num_input = st.text_input("Block 1: Entry Number String (Format: XXX-XXXXXXX-X)", value=st.session_state.saved_entry_num)
+                
+                submit_5 = st.form_submit_button("Transmit Document Payload to US CBP ACE Portal")
+                
+                if submit_5:
+                    entry_pattern = r"^\d{3}-\d{7}-\d{1}$"
+                    if not re.match(entry_pattern, entry_num_input):
+                        st.error("❌ **Format Exception (Block 1):** Entry Number must follow the standard US Customs 11-digit hyphenated structure (e.g., 123-4567890-1).")
+                        st.session_state.pdf_generation_triggered = False
                     else:
-                        st.success("🟢 **Telemetry Normal**\n\nContainer environment variables stable. Cargo routing smoothly.")
+                        st.session_state.saved_entry_num = entry_num_input
+                        st.session_state.workflow_data["entry_num"] = entry_num_input
+                        st.session_state.pdf_generation_triggered = True
 
-                # --- RIGHT COLUMN: THE UN-SILOED COMPLETE DOCUMENT VAULT ---
-                with col_right_library:
-                    st.subheader("📂 Centralized Document Archive Vault")
+            # ==============================================================================
+            # 🚏 SAFELY LIFTED OUTSIDE THE FORM: TRUE CBP FORM 3461 PDF ENGINE
+            # ==============================================================================
+            if st.session_state.pdf_generation_triggered:
+                try:
+                    pdf_reader = PdfReader("cbp_3461_blank.pdf")
+                    pdf_writer = PdfWriter()
+                    pdf_writer.append(pdf_reader)
+
+                    pdf_form_payload = {
+                        "topmostSubform.Page1.EntryNum": str(st.session_state.saved_entry_num),
+                        "topmostSubform.Page1.EntryType": "01",
+                        "topmostSubform.Page1.PortCode": "2704", 
+                        "topmostSubform.Page1.ImporterNum": "12-345678900",
+                        "topmostSubform.Page1.ImporterNameAddr": str(w.get('coop_name')),
+                        "topmostSubform.Page1.Carrier": str(w.get('carrier_scac')),
+                        "topmostSubform.Page1.BL_AWB": str(w.get('bill_of_lading')),
+                        "topmostSubform.Page1.ContainerNum": str(w.get('container_num'))
+                    }
+
+                    pdf_writer.update_page_form_field_values(pdf_writer.pages, pdf_form_payload)
+
+                    pdf_buffer = io.BytesIO()
+                    pdf_writer.write(pdf_buffer)
+                    pdf_buffer.seek(0)
+                    final_pdf_bytes = pdf_buffer.getvalue()
+
+                    st.success("🎉 Official US CBP Form 3461 Document Compiled Successfully!")
                     
-                    with st.expander("📄 Step 0: Origin Legal Framework"):
-                        st.markdown(f"**Cooperative Tax Identifier:** `{w.get('coop_tax_id', 'Awaiting Upload')}`\n\n**Deed Reference ID:** `{active_coop.get('legal_gps_eudr', 'Awaiting Onboarding')}`")
+                    col_preview, col_dl = st.columns([1.5, 1])
+                    
+                    with col_preview:
+                        st.markdown("#### **📄 Live Border Document Preview**")
+                        base64_pdf = base64.b64encode(final_pdf_bytes).decode('utf-8')
+                        pdf_iframe_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="600px" type="application/pdf"></iframe>'
+                        st.markdown(pdf_iframe_display, unsafe_html=True)
                         
-                    with st.expander("🌾 Step 1: Crop Metric Logs"):
-                        st.markdown(f"**Pre-Loading Moisture Value:** `{w.get('lot_moisture', 12.0)}%`\n\n**Sensory Quality Score:** `{w_data.get('cupping_score', 84.5)} Points`")
+                    with col_dl:
+                        st.markdown("#### **🛂 Legal Customs Asset Handshake**")
+                        st.write("Save this verified, filled PDF to submit directly to port authorities or archive for auditing.")
                         
-                    with st.expander("🔒 Step 2: Commercial Escrow Contract"):
-                        escrow_condition = "🔒 Funds Fully Locked & Secured ($85,000.00)" if w.get("escrow_funded") else "⏳ Awaiting Buyer Escrow Funding Deposit"
-                        st.markdown(f"**Transaction Settlement Condition:** `{escrow_condition}`")
-                        st.markdown(f"**Governing Contract Trade Framework:** `Incoterm: FOB (Free On Board)`")
-                        st.caption("💳 Financial Protection: Capital cannot clear to seller until all downstream border gates pass.")
+                        st.download_button(
+                            label="⬇️ Download Official Filled CBP 3461 PDF",
+                            data=final_pdf_bytes,
+                            file_name=f"Official_CBP_3461_Entry_{st.session_state.saved_entry_num}.pdf",
+                            mime="application/pdf",
+                            key="true_government_pdf_download_button"
+                        )
+                        
+                        if st.button("Proceed to Final Escrow Disbursement Milestone", key="move_to_step_6_final_action_btn"):
+                            st.session_state.current_step = 6
+                            st.session_state.pdf_generation_triggered = False 
+                            st.rerun()
 
-                    with st.expander("🔬 Step 3: Biosecurity Clearance"):
-                        st.markdown(f"**Phytosanitary Serial:** `{w.get('phyto_serial', 'Awaiting Exporter Action')}`")
-                        
-                    with st.expander("🚢 Step 4: Ocean Carrier Freight Manifest"):
-                        st.markdown(f"**Assigned Ocean Container ID:** `{w.get('container_num', 'Awaiting Port Loading')}`")
-                        st.markdown(f"**Carrier SCAC Code Line:** `{w.get('carrier_scac', 'Pending Carrier Allocation')}`")
-                        st.markdown(f"**Master Bill of Lading (B/L) String:** `{w.get('bill_of_lading', 'Pending Freight Release')}`")
-                        st.caption("📍 Telemetry: Container links to live tracking telemetry systems.")
+                except FileNotFoundError:
+                    st.error("❌ **Critical Deployment Error:** The template file 'cbp_3461_blank.pdf' was not detected in your folder directory.")
+                except Exception as e:
+                    st.error(f"An unexpected document compiler error occurred: {e}")
 
-                    with st.expander("📋 Step 5: Border Documentation (CBP 3461)"):
-                        st.markdown(f"**Ocean Container Assignment ID:** `{w.get('container_num', 'Awaiting Loading')}`")
-                        st.markdown(f"**ACE Transmit Status:** `{w.get('cbp_3461_status', 'Locked')}`")
+            # ==============================================================================
+            # 🌧️ INTEGRATED: PANEL 5 CONTINGENCY ARBITRATOR & COMPLETE VAULT LIST
+            # ==============================================================================
+            st.divider()
+            col_left_exceptions, col_right_library = st.columns(2)
+
+            with col_left_exceptions:
+                st.subheader("🚨 Ocean Transit Contingency Control")
+                st.write("Simulate real-world supply chain exceptions to present your platform arbitration logic:")
+                
+                btn_c1, btn_c2, btn_c3 = st.columns(3)
+                if btn_c1.button("🌧️ Weather / Storm at Sea", key="p5_storm_contingency_btn"):
+                    st.session_state.active_contingency = "Carrier Storm Delay"
+                if btn_c2.button("🦠 Mold Found at Port", key="p5_mold_contingency_btn"):
+                    st.session_state.active_contingency = "Biological Failure"
+                if btn_c3.button("☀️ Clean Voyage Tracker", key="p5_clean_contingency_btn"):
+                    st.session_state.active_contingency = "Clear Transit"
+                    
+                st.markdown("##### **Automated Platform Referee Response:**")
+                if st.session_state.active_contingency == "Carrier Storm Delay":
+                    st.warning("⚠️ **Schedule Disturbance Logged via Carrier Telemetry API**\n\n*Liability Ruling:* Under FOB terms, the Cooperative is not at fault. Escrow remains safely locked. Timeline adjustments automated.")
+                elif st.session_state.active_contingency == "Biological Failure":
+                    st.error("❌ **Hygiene Failure Exception Tripped**\n\n*Liability Ruling:* Target moisture threshold breached. **Escrow Payout Suspended.** Funds queued for 100% buyer repayment loop.")
+                else:
+                    st.success("🟢 **Telemetry Normal**\n\nContainer environment variables stable. Cargo routing smoothly.")
+
+            with col_right_library:
+                st.subheader("📂 Centralized Document Archive Vault")
+                
+                with st.expander("📄 Step 0: Origin Legal Framework"):
+                    st.markdown(f"**Cooperative Tax Identifier:** `{w.get('coop_tax_id', 'Awaiting Upload')}`\n\n**Deed Reference ID:** `{active_coop.get('legal_gps_eudr', 'Awaiting Onboarding')}`")
+                    
+                with st.expander("🌾 Step 1: Crop Metric Logs"):
+                    st.markdown(f"**Pre-Loading Moisture Value:** `{w.get('lot_moisture', 12.0)}%`\n\n**Sensory Quality Score:** `{w_data.get('cupping_score', 84.5)} Points`")
+                    
+                with st.expander("🔒 Step 2: Commercial Escrow Contract"):
+                    escrow_condition = "🔒 Funds Fully Locked & Secured ($85,000.00)" if w.get("escrow_funded") else "⏳ Awaiting Buyer Escrow Funding Deposit"
+                    st.markdown(f"**Transaction Settlement Condition:** `{escrow_condition}`")
+                    st.markdown(f"**Governing Contract Trade Framework:** `Incoterm: FOB (Free On Board)`")
+                    st.caption("💳 Financial Protection: Capital cannot clear to seller until all downstream border gates pass.")
+
+                with st.expander("🔬 Step 3: Biosecurity Clearance"):
+                    st.markdown(f"**Phytosanitary Serial:** `{w.get('phyto_serial', 'Awaiting Exporter Action')}`")
+                    
+                with st.expander("🚢 Step 4: Ocean Carrier Freight Manifest"):
+                    st.markdown(f"**Assigned Ocean Container ID:** `{w.get('container_num', 'Awaiting Port Loading')}`")
 
         
         # --- PHASE 6: DISBURSEMENT SETTLEMENT ---
