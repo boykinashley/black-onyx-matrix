@@ -1,659 +1,391 @@
-import io
-import re
-import requests
-import json
-import numpy as np
-import pandas as pd
 import streamlit as st
-from datetime import datetime
-# 🚨 DEPLOYMENT MANDATE: Ensure 'pip install supabase pypdf' is run in your build environment
-from supabase import create_client, Client
-from pypdf import PdfReader, PdfWriter
+import pandas as pd
+import time
+import uuid
 
-# 1. Page Configuration Setup
+# Force clean, enterprise page state architecture
 st.set_page_config(
-    page_title="Sovereign Supply Chain Engine", 
+    page_title="Black Onyx Matrix — Control Room", 
     layout="wide", 
-    page_icon="🛡️"
+    initial_sidebar_state="expanded"
 )
 
-st.title("🛡️ BLACK ONYX × LEOLA ADVISORY: AUTOMATED EXEC ADVISOR")
-st.subheader("Decoupled 3-Tier Enterprise Role-Routing Node")
-st.write("**Corporate Horizon:** Black Onyx Advisory × Leola Advisory | **Stewardship Mission:** Planted by Grace")
+# ==============================================================================
+# 🛡️ PLATFORM STATE MACHINE & IN-APP STORAGE INITIALIZATION
+# ==============================================================================
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
 
-# 2. Resilient Hybrid Cloud Connection Layer
-if "SUPABASE_URL" in st.secrets and "SUPABASE_SERVICE_ROLE_KEY" in st.secrets:
-    FINAL_URL = st.secrets["SUPABASE_URL"]
-    FINAL_KEY = st.secrets["SUPABASE_SERVICE_ROLE_KEY"]
-else:
-    # 🚨 SYSTEM BACKUP GATEWAY: Local/Codespace String Ingress Fallback
-    FINAL_URL = "https://mdyoxirhdufdskytcmst.supabase.co"
-    FINAL_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1keW94aXJoZHVmZHNreXRjbXN0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NDUyMTk5NSwiZXhwIjoyMTAwMDk3OTk1fQ.d9AWBTABD4-gvKnFtGT5vNyd2uKJHvOSMeCPRRPXve8"
+if "trade_ledger" not in st.session_state:
+    st.session_state.trade_ledger = [
+        {
+            "trade_id": "BOX-TX991",
+            "timestamp": "2026-09-18 10:14:22",
+            "buyer_lei": "LEI-US-550912834",
+            "seller_lei": "LEI-CO-110293847",
+            "hs_code": "0901.11",
+            "value": 1250000.00,
+            "escrow_status": "🟢 RELEASED / CLEARED",
+            "risk_score": "LOW"
+        },
+        {
+            "trade_id": "BOX-FL442",
+            "timestamp": "2026-09-18 14:32:05",
+            "buyer_lei": "LEI-US-992318451",
+            "seller_lei": "LEI-TH-883210943",
+            "hs_code": "8802.40",
+            "value": 42000000.00,
+            "escrow_status": "🚨 LOCKED / ARBITRATION",
+            "risk_score": "HIGH"
+        }
+    ]
 
-try:
-    supabase: Client = create_client(FINAL_URL, FINAL_KEY)
-except Exception as e:
-    st.error(f"🔒 **Security Policy Exception:** Master Sourcing API Handshake Broken: {str(e)}")
+# Global Baseline HS Rule Book Layer
+HS_RULEBOOK = {
+    "0901.11": {"commodity": "Coffee, Green / Not Roasted", "max_variance_pct": 2.0},
+    "8802.40": {"commodity": "Civil Aircraft / Private Aviation Hull", "max_variance_pct": 0.5}
+}
+
+# ==============================================================================
+# 🔏 STANDALONE SECURITY AUTHENTICATION GATEWAY
+# ==============================================================================
+if not st.session_state.authenticated:
+    st.title("🔒 Black Onyx Middleware Authentication")
+    st.write("Access Restricted: This terminal requires a verified permanent Private Lender security credential.")
+    
+    with st.form("lender_auth_gate"):
+        username = st.text_input("Financier Login Identifier:")
+        password = st.text_input("Security Encryption Key:", type="password")
+        submit_login = st.form_submit_button("Verify Identity & Unlock Middleware Core", use_container_width=True)
+        
+        if submit_login:
+            # Explicit secure credential validation logic
+            if username == "lender@blackonyx.com" and password == "blackonyx2026":
+                st.session_state.authenticated = True
+                st.success("Identity Authenticated. Mounting system cluster...")
+                st.rerun()
+            else:
+                st.error("Access Denied: Invalid security configuration strings or key signature.")
     st.stop()
 
-@st.cache_data(ttl=2) # 2-second quick cache refresh loop
-def stream_live_ledger_from_supabase():
-    try:
-        response = supabase.table("global_compliance_ledger").select("*").execute()
-        return response.data
-    except Exception as e:
-        st.error(f"🚨 Supabase Cloud Connection Interrupted: {str(e)}")
-        return []
+# ==============================================================================
+# 🏛️ CORE DASHBOARD CONTROL ROOM (THE MAIN UI PANEL)
+# ==============================================================================
+st.title("💎 Core Dashboard Control Room")
+st.write("Alternative Credit & Escrow Funds Transaction Telemetry Terminal.")
 
-# 3. State Synchronization Layer
-if 'farm_database' not in st.session_state or st.sidebar.button("🔄 Force Cloud DB Sync"):
-    st.session_state.farm_database = stream_live_ledger_from_supabase()
+# 1. SIDEBAR IDENTITY BRANDING
+with st.sidebar:
+    st.markdown("## ⚙️ Middleware Matrix")
+    st.caption("Target Persona: Private Lender / Financier")
+    st.divider()
+    st.markdown("### 🚦 Operator Identity Profile")
+    st.success("Connected: Active Node Session")
+    st.info("Role: Primary Funding Referee")
+    if st.button("🔒 Log Out of Terminal", use_container_width=True):
+        st.session_state.authenticated = False
+        st.rerun()
 
-lookbook_df = pd.DataFrame(st.session_state.farm_database)
+# 2. CROSS-BORDER RISK METRIC DISPLAYS
+st.subheader("📊 Cross-Border Risk Analytics & Counterparty Exposure")
+col_r1, col_r2, col_r3, col_r4 = st.columns(4)
 
-# Standardize visual presentation order of column arrays
-if not lookbook_df.empty and "coop_id" in lookbook_df.columns:
-    lookbook_df = lookbook_df[["coop_id", "entity_name", "origin_country", "legal_gps_eudr", "tax_id_corporate_bank", "moisture_content", "phytosanitary_inspection", "customs_clearance_status"]]
+with col_r1:
+    st.metric(label="Global Active Capital Exposure", value="$43.25M USD", delta="+$2.1M This Week")
+with col_r2:
+    st.metric(label="Sovereign Risk Level (Origin Index)", value="Stable (Low)", delta="No Alerts")
+with col_r3:
+    st.metric(label="Counterparty LEI Match Accuracy", value="100.00%", delta="Verified via API")
+with col_r4:
+    st.metric(label="Active Escrow Violation Liquidity", value="$12.50M USD", delta="-4.2% Risk Deflection", delta_color="inverse")
 
-st.markdown("### 📊 Global Registry & Institutional Traceability Passport Ledger")
-st.markdown("This live ledger reflects permanent data states streamed directly from your decoupled cloud database layer.")
-st.dataframe(lookbook_df, use_container_width=True, hide_index=True)
+st.divider()
 
-# 🛡️ THE COMPLIANCE SHIELD DISCLAIMER
-st.warning("""
-**🛡️ The Compliance Shield: Sovereign Infrastructure Notice**  
-US customs brokers, financial institutions, and boutique roasters must comply with strict federal guidelines (like **US FDA FSMA Section 204 traceability rules**). They are highly sensitive about security. Knowing that their supply chain data is stored securely on US soil behind a domestic cloud firewall removes a massive institutional trust barrier during procurement audits.
-""")
+# 3. ACTIVE TRADE PROFILE MONITORS
+st.subheader("🚢 Active Trade Flow Pipeline & Ledger Records")
+df_ledger = pd.DataFrame(st.session_state.trade_ledger)
+
+# Render a clean, scannable data grid tracking global asset flows
+st.dataframe(
+    df_ledger,
+    column_config={
+        "trade_id": "Transaction Token Reference",
+        "timestamp": "Audit Ingress Log Date",
+        "buyer_lei": "Buyer Corporate LEI",
+        "seller_lei": "Seller Corporate LEI",
+        "hs_code": "Target HS Code",
+        "value": st.column_config.NumberColumn("Contract Invoice Value", format="$%,.2f"),
+        "escrow_status": "Escrow Condition Status",
+        "risk_score": "System Risk Rating"
+    },
+    use_container_width=True,
+    hide_index=True
+)
+# Append or merge this logic directly below Section 1's main dashboard rendering
+
+# ==============================================================================
+# 🎯 SECTION 2: THE INGESTION LAYER & ZERO-LOGIN DROP BOX GENERATOR
+# ==============================================================================
+st.divider()
+st.subheader("📩 Step 2: Automated Seller Ingestion Workflow")
+st.write("Generate a secure, single-use workspace URL token to allow external counterparties to upload verification files.")
+
+# A. LENDER WORKSPACE: LINK GENERATOR COMPONENT
+col_gen_1, col_gen_2 = st.columns([1.2, 2])
+
+with col_gen_1:
+    st.markdown("#### **Generate Token Link**")
+    target_trade_id = st.selectbox(
+        "Select Active Transaction Reference:", 
+        [t["trade_id"] for t in st.session_state.trade_ledger if "RELEASED" not in t["escrow_status"]]
+    )
+    
+    if st.button("⚡ Generate One-Time Secure Token Link", use_container_width=True):
+        # Generate an absolute cryptographic reference string
+        unique_secure_token = f"TOKEN-{str(uuid.uuid4())[:8].upper()}"
+        
+        # Save structural tracking mapping into session memory
+        st.session_state.active_drop_token = unique_secure_token
+        st.session_state.token_trade_target = target_trade_id
+        st.session_state.token_used = False
+        st.success("Token generated in platform cache memory!")
+
+# Render link output if it exists in state
+if "active_drop_token" in st.session_state and not st.session_state.token_used:
+    with col_gen_2:
+        st.markdown("#### **Generated Secure URL Manifest**")
+        # Simulating a live cloud application domain URL string
+        simulated_secure_url = f"https://streamlit.io{st.session_state.active_drop_token}"
+        st.info(f"📧 **Emailed Target Link Payload to Seller:**\n\n`{simulated_secure_url}`")
+        
+        # Simulated shortcut action for testing on your single-screen app environment
+        st.write("---")
+        st.caption("📱 Presentation Shortcut: Click to simulate the Seller opening that email link:")
+        if st.button("👉 Simulate Seller Clicking Email URL Link"):
+            st.session_state.simulated_query_param = st.session_state.active_drop_token
+            st.rerun()
 
 st.divider()
 
 # ==============================================================================
-# PART 2: ROLE SELECTION HUB & WORKFLOW STATE INITIALIZATION
+# B. PUBLIC WORKSPACE: BARE UN-AUTHENTICATED SELLER DROP BOX INTERFACE
 # ==============================================================================
-st.sidebar.title("👤 Role Selection Workspace")
-
-# Capture User Intent via your Simulated Role Selector dropdown matrix
-current_role = st.sidebar.selectbox(
-    "Simulate logging in as:", 
-    [
-        "1. Discovery & Diagnostic Panel", 
-        "2. Cooperative Representative", 
-        "3. Global Wholesale Buyer", 
-        "4. Logistics & Customs Broker"
-    ],
-    key="multi_tenant_role_simulator_selector"
-)
-
-# Initialize System Master Step-Based Workflow States
-if "current_step" not in st.session_state: st.session_state.current_step = 0
-if "active_contingency" not in st.session_state: st.session_state.active_contingency = "Clear Transit"
-
-if "workflow_data" not in st.session_state:
-    st.session_state.workflow_data = {
-        "coop_name": "Andean Coffee Co-Op", "coop_tax_id": "", "land_title_num": "",
-        "lot_moisture": 12.0, "cupping_score": 84.5, "escrow_funded": False, "phyto_serial": "",
-        "container_num": "", "carrier_scac": "", "bill_of_lading": "", "entry_num": "", "cbp_3461_status": "Locked"
-    }
-
-# Bind your asynchronous memory parameters straight to your active database rows
-if not lookbook_df.empty:
-    coop_profile_names = list(set(lookbook_df["entity_name"].dropna().tolist()))
-    selected_coop_profile = st.sidebar.selectbox("Select Active Ledger Profile to Evaluate:", coop_profile_names, key="sidebar_active_profile_picker")
-    coop_idx = next(index for (index, d) in enumerate(st.session_state.farm_database) if d["entity_name"] == selected_coop_profile)
-    active_coop = st.session_state.farm_database[coop_idx]
+# Simulate a URL parameter trigger check at the bottom layer of the main loop
+if "simulated_query_param" in st.session_state and st.session_state.simulated_query_param != "":
+    current_token = st.session_state.simulated_query_param
     
-    st.session_state.workflow_data["coop_name"] = active_coop["entity_name"]
-    st.session_state.workflow_data["lot_moisture"] = float(active_coop["moisture_content"])
-else:
-    active_coop = {"coop_id": "COOP-LN01", "entity_name": "Default Cluster Node", "origin_country": "Global", "legal_gps_eudr": "Pending ⚠️", "tax_id_corporate_bank": "Failed ❌", "moisture_content": 12.0, "phytosanitary_inspection": "Failed ❌", "customs_clearance_status": "Blocked 🚫"}
+    # Verify token matching state
+    if current_token == st.session_state.get("active_drop_token") and not st.session_state.get("token_used", False):
+        
+        # Completely block the regular UI view, showing only the public drop window
+        st.empty() 
+        st.markdown("---")
+        st.title("📥 Secure Document Drop Box Terminal")
+        st.write(f"Authorized Node Workspace Profile Link ID: `{current_token}`")
+        st.caption(f"Linked Transaction Reference: **{st.session_state.token_trade_target}**")
+        st.warning("🔒 Confidential: You do not need a password. This secure file gateway authorizes your upload directly.")
 
-st.sidebar.markdown(f"**Active Context:** `{current_role}`\n\n**Pipeline Step:** `Step {st.session_state.current_step}`\n\n**Transit Condition:** `{st.session_state.active_contingency}`")
-st.sidebar.divider()
-
-# ==============================================================================
-# PART 3: DISCOVERY WORKSPACE & MULTI-USER WORKFLOW ENGINE
-# ==============================================================================
-
-# PANEL 1: INTAKE DIAGNOSTIC & COMPLIANCE FINANCIAL CALCULATOR
-if current_role == "1. Discovery & Diagnostic Panel":
-    st.title("🔍 Digital Maturity & Compliance Integrity Diagnostic")
-    st.write("Assess how fragmented operations, manual handoffs, and paper documentation introduce financial risk.")
-    st.info("💡 **Pitch Tip:** Guide your convention lead through these quick parameters to calculate their operational leakage.")
-
-    col_profile1, col_profile2 = st.columns(2)
-    with col_profile1:
-        prospect_identity = st.selectbox("Identify Your Primary Alignment:", ["Select profile...", "Cooperative Representative / Origin Exporter", "US Importer / Wholesale Buyer"], key="p1_prospect_identity_selector")
-    with col_profile2:
-        annual_volume = st.number_input("Average volume of containers handled annually:", min_value=1, value=15, key="p1_annual_volume_input")
-
-    if prospect_identity != "Select profile...":
-        st.markdown("#### **📋 Core Operations Friction Audit**")
-        q_custody = st.radio("1. Document Chain of Custody & Touchpoints:", ["**End-to-End Digital**: One centralized cloud file is updated securely by each stakeholder sequentially.", "**Multi-Hand Handling**: Paperwork is passed through multiple hands via email attachments, forcing manual file downloading or re-saving.", "**Fragmented/Siloed**: Every team creates independent versions of sheets and invoices; data is fragmented across disjointed systems."], key="p1_q_custody_radio")
-        q_physical = st.radio("2. Reliance on Physical Assets & Stamps:", ["**100% Cloud/Digital**: Documents are securely archived in the cloud with no reliance on physical filing cabinets.", "**Hybrid/Paper-Reliant**: Files are regularly printed out, require physical signatures/wet ink stamps, and live in desk drawers.", "**High Vulnerability**: Intense reliance on physical photocopies. A localized climate hazard or office fire could destroy our proof of registration."], key="p1_q_physical_radio")
-        q_rework = st.radio("3. Processing Typos, Mismatches, and Errors:", ["Our internal networks catch structural formatting mistakes instantly before documents are compiled or shared.", "Minor clerical typos (like mismatched IDs or container numbers) require manual email re-work loops and backtracking.", "Errors are usually discovered late at the port terminal, triggering immediate administrative panic and demurrage risk."], key="p1_q_rework_radio")
-
-        st.subheader("🧮 Estimated Annual Financial Leakage Metrics")
-        base_containers = float(annual_volume)
-        incident_multiplier = 0.05
-        if "Multi-Hand" in q_custody: incident_multiplier += 0.15
-        if "Fragmented" in q_custody: incident_multiplier += 0.25
-        if "Hybrid" in q_physical: incident_multiplier += 0.10
-        if "High Vulnerability" in q_physical: incident_multiplier += 0.30
-        if "manual email re-work" in q_rework: incident_multiplier += 0.20
-        if "administrative panic" in q_rework: incident_multiplier += 0.40
-
-        estimated_mishaps = max(1.0, base_containers * incident_multiplier)
-        annual_rework_loss = estimated_mishaps * 150.00
-        delay_days = 3.0 if ("High Vulnerability" in q_physical or "panic" in q_rework) else 1.5
-        annual_port_loss = estimated_mishaps * (delay_days * 400.00)
-        total_leakage = annual_rework_loss + annual_port_loss
-
-        # ==============================================================================
-        # 🎯 PYTHON 3.14 HARDENED METRICS INTERFACE LAYER
-        # ==============================================================================
-        col_loss1, col_loss2 = st.columns(2)
-        with col_loss1: 
-            st.metric(
-                label="Annual Capital Lost to Administrative Re-Work", 
-                value=round(float(annual_rework_loss), 2),
-                delta="Wasted Hours"
+        # Single Upload Form Interface
+        with st.form("public_seller_drop_box_form"):
+            st.markdown("### **📤 Ingest Official Verification Assets**")
+            st.write("Please drop your official third-party Certificate of Inspection PDF file below to update the lender:")
+            
+            uploaded_inspection_file = st.file_uploader(
+                "Select Certificate of Inspection (PDF/JSON Data Format)", 
+                type=["pdf", "json"]
             )
-        with col_loss2: 
-            st.metric(
-                label="Annual Port Delay & Storage Penalty Exposure", 
-                value=round(float(annual_port_loss), 2),
-                delta="Demurrage Risk"
-            )
-
-
-# PANEL 2: THE COOPERATIVE ANCHOR WORKSPACE
-elif current_role == "2. Cooperative Representative":
-    st.title("🌾 Cooperative Control & Compliance Hub")
-    st.info("Accountable Role: Validate legal land assets, manage quality logs, and publish premium lot lookbooks.")
-    st.markdown(f"### **Current Shipment Stage Index: Step {st.session_state.current_step}**")
-    
-    tab_gate, tab_create = st.tabs(["1. Step 0: Legal Onboarding Gate", "2. Step 1: Lookbook Registry"])
-    
-    with tab_gate:
-        st.write("Complete this gate to authorize your cooperative's crops for commercial export eligibility.")
-        if st.session_state.current_step > 0:
-            st.success("✅ **Step 0 Complete**: Your business tax framework and land deeds are fully validated.")
-        else:
-            with st.form("step0_gate_form"):
-                tax_input = st.text_input("National Corporate/Cooperative Tax ID", value="CO-90088123-X", key="p2_tax_id_input")
-                title_input = st.text_input("Government Land Deed Registry Serial Number", value="DEED-ANDES-4412", key="p2_land_deed_input")
-                st.file_uploader("Upload Certified Land Title & GPS Coordinate Boundary Map File", type=["pdf"], key="p2_pdf_uploader")
-                submit_0 = st.form_submit_button("Verify Identity & Authorize Lookbook Access")
-                
-                if submit_0:
-                    if tax_input and title_input:
-                        st.session_state.workflow_data["coop_tax_id"] = tax_input
-                        st.session_state.workflow_data["land_title_num"] = title_input
-                        st.session_state.current_step = 1
-                        st.success("Identity Verified! Lookbook workspace unlocked.")
-                        st.rerun()
-                    else:
-                        st.error("All legal data fields and land deeds must be supplied to pass.")
-
-    with tab_create:
-        if st.session_state.current_step < 1: st.warning("🔒 **Locked:** You must clear the Step 0 Legal Onboarding Gate before adding crop lots.")
-        elif st.session_state.current_step > 1: st.success("✅ **Step 1 Complete**: This lot profile lookbook is locked and published to the active marketplace.")
-        else:
-            st.write("Build a transparent lot profile to catch the eye of global premium wholesale buyers.")
-            with st.form("step1_lookbook_form"):
-                moist_input = st.text_input("Measured Green Coffee Bean Moisture Content Log (%)", value="11.4%", key="p2_moisture_str_input")
-                score_input = st.slider("Independent Cupping / Quality Score (Points)", 80.0, 100.0, 88.5, key="p2_cupping_score_slider")
-                st.file_uploader("Upload Farm Marketing & Harvest Batch Photography", type=["jpg", "png"], key="p2_image_uploader")
-                submit_1 = st.form_submit_button("🚀 Publish Lot to Global Buyer Marketplace")
-                
-                if submit_1:
-                    st.session_state.workflow_data["lot_moisture"] = moist_input
-                    st.session_state.workflow_data["cupping_score"] = score_input
-                    st.session_state.current_step = 2
-                    st.success("Lot profile successfully published online!")
+            
+            submit_upload = st.form_submit_button("Verify & Finalize Document Ingress", use_container_width=True)
+            
+            if submit_upload:
+                if uploaded_inspection_file is not None:
+                    # Ingress complete. Mutate state flags to protect single-use stability
+                    st.session_state.token_used = True
+                    st.session_state.simulated_query_param = "" # Clear temporary query parameters
+                    
+                    # Lock data state updates into the corresponding master ledger record row index
+                    for trade in st.session_state.trade_ledger:
+                        if trade["trade_id"] == st.session_state.token_trade_target:
+                            trade["escrow_status"] = "⏳ PENDING AUTOMATED CROSS-CHECK"
+                    
+                    # Present clean termination success banner instructions
+                    st.balloons()
+                    st.success("🎉 Success! Your Certificate of Inspection has been securely ingested into the platform's verification array.")
+                    st.info("ℹ️ System Update: This secure session token has expired. Your workflow is complete. Please close this browser tab safely.")
+                    
+                    time.sleep(4)
                     st.rerun()
-
-# PANEL 3: GLOBAL MARKETPLACE & ESCROW CONTRACTS
-elif current_role == "3. Global Wholesale Buyer":
-    st.title("☕ Global Green Coffee Lookbook Market")
-    st.write("Browse transparent, identity-verified agricultural lots available for direct US importation.")
-    
-    if st.session_state.current_step < 2:
-        st.warning("⏳ **Awaiting Inventory:** The Cooperative is currently compiling their legal validation gates. No lots are live yet.")
-    elif st.session_state.current_step > 2:
-        st.success("🎉 **Transaction Secured**: You have funded the escrow wallet for this shipment. Cargo is moving.")
-    else:
-        w = st.session_state.workflow_data
-        st.markdown(f"### **Lot Profile: {w['coop_name']}**")
-        c_m1, c_m2, c_m3 = st.columns(3)
-        c_m1.metric("Sensory Quality Score", f"{w['cupping_score']} Points", key="p3_metric_cupping")
-        c_m2.metric("Pre-Loading Moisture Log", w['lot_moisture'], key="p3_metric_moisture")
-        c_m3.metric("Contract Value", "$85,000.00 USD", key="p3_metric_value")
-        
-        st.caption(f"🔒 **Legal Transparency Audit:** Registered Tax ID `{w['coop_tax_id']}` and Land Title `{w['land_title_num']}` verified at origin source.")
-        st.warning("⚠️ **Contract Framework Alert:** IncoTerm: FOB (Free On Board). Legal liability shifts to buyer upon ship loading.")
-        
-        if st.button("🤝 Fund Escrow Wallet & Initialize Logistics Tracking Timeline", key="p3_fund_escrow_button"):
-            st.session_state.workflow_data["escrow_funded"] = True
-            st.session_state.current_step = 3
-            st.success("Escrow secured! The commercial invoice has been compiled. The tracking timeline is active.")
-            st.rerun()
-
-# PANEL 4: BACKEND LOGISTICS & CUSTOMS BROKER WORKSPACE
-elif current_role == "4. Logistics & Customs Broker":
-    st.title("🚢 Supply Chain Logistics & Customs Integration Engine")
-    w = st.session_state.workflow_data
-    
-    if st.session_state.current_step < 3: st.warning("⏳ **Awaiting Transaction:** This workspace unlocks sequentially once a buyer executes an escrow contract.")
-    else:
-        st.markdown("#### **📍 Live Operational Milestone Tracker**")
-        st.write(f"Active Lifecycle Status Code: **Phase {st.session_state.current_step}**")
-        
-        # SYSTEM STEP 3 ACTION: LOCAL HEALTH CLEARANCE
-        if st.session_state.current_step == 3:
-            st.subheader("🔬 Phase 3: Phytosanitary Procurement Work Area")
-            col_p_data, col_p_upload = st.columns(2)
-
-
-### **Section 4: Universal Footers (Panels 5 & 6: Arbitrage, Exceptions, & Matrix)**
-### *Paste this as the final block at the absolute bottom of your file. This mounts your arbitrage engines, automated exceptions, document vaults, and the matrix checker universally underneath the workflow screens.* ###
-
-# ==============================================================================
-# 🚢 PANEL 4: LOGISTICS & CUSTOMS BROKER WORKSPACE
-# ==============================================================================
-elif current_role == "4. Logistics & Customs Broker":
-    st.title("🚢 Supply Chain Logistics & Customs Integration Engine")
-    w = st.session_state.workflow_data
-    
-    if st.session_state.current_step < 3:
-        st.warning("⏳ **Awaiting Transaction:** This workspace unlocks sequentially once a buyer executes an escrow contract.")
-    else:
-        st.markdown("#### **📍 Live Operational Milestone Tracker**")
-        st.write(f"Active Lifecycle Status Code: **Phase {st.session_state.current_step}**")
-        
-        # --- PHASE 3: BIOLOGICAL HEALTH CERTIFICATE INTAKE ---
-        if st.session_step == 3:
-            st.subheader("🔬 Phase 3: Phytosanitary Procurement Work Area")
-            st.info("The app provides structured data panels below. Copy these parameters into your local Single Window portal.")
-            
-            col_p_data, col_p_upload = st.columns(2)
-            with col_p_data:
-                st.write(f"**Applicant Entity:** {w['coop_name']}")
-                st.write(f"**Origin Land Deed Reference:** {active_coop.get('legal_gps_eudr')}")
-                st.write(f"**Moisture Integrity Baseline:** {w['lot_moisture']}%")
-            with col_p_upload:
-                with st.form("step3_form_broker"):
-                    p_serial = st.text_input("Official Phytosanitary Certificate String", value="PHYTO-CO-2026-991A")
-                    st.file_uploader("Upload Government Issued Signed Certificate PDF", type=["pdf"])
-                    submit_3 = st.form_submit_button("Verify Biological Health Certification")
-                    if submit_3 and p_serial:
-                        st.session_state.workflow_data["phyto_serial"] = p_serial
-                        st.session_state.current_step = 4
-                        st.success("Health logs saved. Moving to Carrier Gate-In Phase.")
-                        st.rerun()
-
-        # --- PHASE 4: PORT AND CARRIER ALLOCATION ---
-        elif st.session_state.current_step == 4:
-            st.subheader("⚓ Phase 4: Ocean Carrier Allocation")
-            with st.form("step4_carrier_form"):
-                container_input = st.text_input("Ocean Container Tracking ID (4 Letters + 7 Digits)", value="MSKU1192843")
-                carrier_input = st.selectbox("Ocean Steamship Carrier SCAC Line:", ["MAEU (Maersk Line)", "MSCU (Mediterranean Shipping)", "CMAC (CMA CGM)"])
-                bl_input = st.text_input("Bill of Lading (B/L) Reference ID", value="BL-Msk-883921")
-                
-                submit_4 = st.form_submit_button("Map Carrier API Telemetry")
-                if submit_4 and container_input and bl_input:
-                    st.session_state.workflow_data["container_num"] = container_input
-                    st.session_state.workflow_data["carrier_scac"] = carrier_input
-                    st.session_state.workflow_data["bill_of_lading"] = bl_input
-                    st.session_state.current_step = 5
-                    st.success("Carrier mapped successfully! Telemetry stream is active.")
-                    st.rerun()
-
-               # --- PHASE 5: US CUSTOMS AUTOMATED FORM 3461 payload ---
-        elif st.session_state.current_step == 5:
-            st.subheader("📋 Phase 5: US Customs Entry Processing Engine")
-            st.write("Avoid manual data-entry fatigue. Extract verified historical stakeholder parameters with one-click.")
-            
-            if st.button("⚡ Fetch & Pre-fill CBP Form 3461 Schema", key="p4_fetch_3461_schema_btn"):
-                st.session_state.workflow_data["cbp_3461_status"] = "Compiled via Platform API — Zero Typo Risk"
-                st.success("Consolidated Step 0 Tax Framework, Step 1 Moisture Log, Step 3 Phyto Serial, and Step 4 Container ID.")
-            
-            st.write(f"CBP Form 3461 Status: **{w['cbp_3461_status']}**")
-            
-            # Initialize processing states safely in session memory
-            if "pdf_generation_triggered" not in st.session_state:
-                st.session_state.pdf_generation_triggered = False
-            if "saved_entry_num" not in st.session_state:
-                st.session_state.saved_entry_num = "123-4567890-1"
-
-            # --- SUBMISSION INPUT FORM (STRICTLY DATA INPUT ONLY) ---
-            with st.form("final_cbp_submission"):
-                st.markdown("### **Review Auto-Populated Document Elements**")
-                st.text_input("Block 9: Importer Number (Auto-Populated)", value="12-345678900", disabled=True)
-                st.text_input("Block 14: Country of Origin (Auto-Populated)", value="CO", disabled=True)
-                st.text_input("Block 12: Bill of Lading ID (Auto-Populated)", value=w.get("bill_of_lading", "BL-PENDING"), disabled=True)
-                
-                st.markdown("### **Broker Action Required: Entry Registration**")
-                entry_num_input = st.text_input("Block 1: Entry Number String (Format: XXX-XXXXXXX-X)", value=st.session_state.saved_entry_num)
-                
-                submit_5 = st.form_submit_button("Transmit Document Payload to US CBP ACE Portal")
-                
-                if submit_5:
-                    entry_pattern = r"^\d{3}-\d{7}-\d{1}$"
-                    if not re.match(entry_pattern, entry_num_input):
-                        st.error("❌ **Format Exception (Block 1):** Entry Number must follow the standard US Customs 11-digit hyphenated structure (e.g., 123-4567890-1).")
-                        st.session_state.pdf_generation_triggered = False
-                    else:
-                        st.session_state.saved_entry_num = entry_num_input
-                        st.session_state.workflow_data["entry_num"] = entry_num_input
-                        st.session_state.pdf_generation_triggered = True
-
-            # ==============================================================================
-            # 🚏 SAFELY LIFTED OUTSIDE THE FORM: TRUE CBP FORM 3461 PDF ENGINE
-            # ==============================================================================
-            if st.session_state.pdf_generation_triggered:
-                try:
-                    pdf_reader = PdfReader("cbp_3461_blank.pdf")
-                    pdf_writer = PdfWriter()
-                    pdf_writer.append(pdf_reader)
-
-                    pdf_form_payload = {
-                        "topmostSubform.Page1.EntryNum": str(st.session_state.saved_entry_num),
-                        "topmostSubform.Page1.EntryType": "01",
-                        "topmostSubform.Page1.PortCode": "2704", 
-                        "topmostSubform.Page1.ImporterNum": "12-345678900",
-                        "topmostSubform.Page1.ImporterNameAddr": str(w.get('coop_name')),
-                        "topmostSubform.Page1.Carrier": str(w.get('carrier_scac')),
-                        "topmostSubform.Page1.BL_AWB": str(w.get('bill_of_lading')),
-                        "topmostSubform.Page1.ContainerNum": str(w.get('container_num'))
-                    }
-
-                    pdf_writer.update_page_form_field_values(pdf_writer.pages, pdf_form_payload)
-
-                    pdf_buffer = io.BytesIO()
-                    pdf_writer.write(pdf_buffer)
-                    pdf_buffer.seek(0)
-                    final_pdf_bytes = pdf_buffer.getvalue()
-
-                    st.success("🎉 Official US CBP Form 3461 Document Compiled Successfully!")
-                    
-                    col_preview, col_dl = st.columns([1.5, 1])
-                    
-                    with col_preview:
-                        st.markdown("#### **📄 Live Border Document Preview**")
-                        base64_pdf = base64.b64encode(final_pdf_bytes).decode('utf-8')
-                        pdf_iframe_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="600px" type="application/pdf"></iframe>'
-                        st.markdown(pdf_iframe_display, unsafe_html=True)
-                        
-                    with col_dl:
-                        st.markdown("#### **🛂 Legal Customs Asset Handshake**")
-                        st.write("Save this verified, filled PDF to submit directly to port authorities or archive for auditing.")
-                        
-                        st.download_button(
-                            label="⬇️ Download Official Filled CBP 3461 PDF",
-                            data=final_pdf_bytes,
-                            file_name=f"Official_CBP_3461_Entry_{st.session_state.saved_entry_num}.pdf",
-                            mime="application/pdf",
-                            key="true_government_pdf_download_button"
-                        )
-                        
-                        if st.button("Proceed to Final Escrow Disbursement Milestone", key="move_to_step_6_final_action_btn"):
-                            st.session_state.current_step = 6
-                            st.session_state.pdf_generation_triggered = False 
-                            st.rerun()
-
-                except FileNotFoundError:
-                    st.error("❌ **Critical Deployment Error:** The template file 'cbp_3461_blank.pdf' was not detected in your folder directory.")
-                except Exception as e:
-                    st.error(f"An unexpected document compiler error occurred: {e}")
-
-            # ==============================================================================
-            # 🌧️ INTEGRATED: PANEL 5 CONTINGENCY ARBITRATOR & COMPLETE VAULT LIST
-            # ==============================================================================
-            st.divider()
-            col_left_exceptions, col_right_library = st.columns(2)
-
-            with col_left_exceptions:
-                st.subheader("🚨 Ocean Transit Contingency Control")
-                st.write("Simulate real-world supply chain exceptions to present your platform arbitration logic:")
-                
-                btn_c1, btn_c2, btn_c3 = st.columns(3)
-                if btn_c1.button("🌧️ Weather / Storm at Sea", key="p5_storm_contingency_btn"):
-                    st.session_state.active_contingency = "Carrier Storm Delay"
-                if btn_c2.button("🦠 Mold Found at Port", key="p5_mold_contingency_btn"):
-                    st.session_state.active_contingency = "Biological Failure"
-                if btn_c3.button("☀️ Clean Voyage Tracker", key="p5_clean_contingency_btn"):
-                    st.session_state.active_contingency = "Clear Transit"
-                    
-                st.markdown("##### **Automated Platform Referee Response:**")
-                if st.session_state.active_contingency == "Carrier Storm Delay":
-                    st.warning("⚠️ **Schedule Disturbance Logged via Carrier Telemetry API**\n\n*Liability Ruling:* Under FOB terms, the Cooperative is not at fault. Escrow remains safely locked. Timeline adjustments automated.")
-                elif st.session_state.active_contingency == "Biological Failure":
-                    st.error("❌ **Hygiene Failure Exception Tripped**\n\n*Liability Ruling:* Target moisture threshold breached. **Escrow Payout Suspended.** Funds queued for 100% buyer repayment loop.")
                 else:
-                    st.success("🟢 **Telemetry Normal**\n\nContainer environment variables stable. Cargo routing smoothly.")
-
-                       # --- RIGHT COLUMN: THE UN-SILOED COMPLETE DOCUMENT VAULT ---
-            with col_right_library:
-                st.subheader("📂 Centralized Document Archive Vault")
-                
-                # Direct lookup shortcut map to prevent empty values
-                vault_data = st.session_state.workflow_data
-                
-                with st.expander("📄 Step 0: Origin Legal Framework"):
-                    # Check for blank string and supply fallback default value
-                    tax_id_display = vault_data.get('coop_tax_id') if vault_data.get('coop_tax_id') != "" else active_coop.get('tax_id_corporate_bank', 'COOP-TAX-990')
-                    st.markdown(f"**Cooperative Tax Identifier:** `{tax_id_display}`")
-                    st.markdown(f"**Deed Reference ID:** `{active_coop.get('legal_gps_eudr', 'Verified ✅')}`")
-                    
-                with st.expander("🌾 Step 1: Crop Metric Logs"):
-                    st.markdown(f"**Pre-Loading Moisture Value:** `{vault_data.get('lot_moisture', 11.2)}%`")
-                    st.markdown(f"**Sensory Quality Score:** `{vault_data.get('cupping_score', 84.5)} Points`")
-                    
-                # =============================================================
-                # 🔒 RESTORED: STEP 2 EXPANDER FOLDER (WAS TOTALLY MISSING)
-                # =============================================================
-                with st.expander("🔒 Step 2: Commercial Escrow Contract"):
-                    escrow_condition = "🔒 Funds Fully Locked & Secured ($85,000.00)" if vault_data.get("escrow_funded") else "⏳ Awaiting Buyer Escrow Funding Deposit"
-                    st.markdown(f"**Transaction Settlement Condition:** `{escrow_condition}`")
-                    st.markdown(f"**Governing Contract Trade Framework:** `Incoterm: FOB (Free On Board)`")
-                    st.caption("💳 Financial Protection: Capital cannot clear to seller until all downstream border gates pass.")
-
-                with st.expander("🔬 Step 3: Biosecurity Clearance"):
-                    phyto_display = vault_data.get('phyto_serial') if vault_data.get('phyto_serial') != "" else "PHYTO-CO-2026-991A"
-                    st.markdown(f"**Phytosanitary Serial:** `{phyto_display}`")
-                    
-                # =============================================================
-                # 🚢 RESTORED: STEP 4 EXPANDER FOLDER (WAS TOTALLY MISSING)
-                # =============================================================
-                with st.expander("🚢 Step 4: Ocean Carrier Freight Manifest"):
-                    container_display = vault_data.get('container_num') if vault_data.get('container_num') != "" else "MSKU1192843"
-                    carrier_display = vault_data.get('carrier_scac') if vault_data.get('carrier_scac') != "" else "MAEU (Maersk Line)"
-                    bl_display = vault_data.get('bill_of_lading') if vault_data.get('bill_of_lading') != "" else "BL-Msk-883921"
-                    
-                    st.markdown(f"**Assigned Ocean Container ID:** `{container_display}`")
-                    st.markdown(f"**Carrier SCAC Code Line:** `{carrier_display}`")
-                    st.markdown(f"**Master Bill of Lading (B/L) String:** `{bl_display}`")
-                    st.caption("📍 Telemetry: Container links to live tracking telemetry systems.")
-
-                with st.expander("📋 Step 5: Border Documentation (CBP 3461)"):
-                    final_container = vault_data.get('container_num') if vault_data.get('container_num') != "" else "MSKU1192843"
-                    st.markdown(f"**Ocean Container Assignment ID:** `{final_container}`")
-                    st.markdown(f"**ACE Transmit Status:** `{vault_data.get('cbp_3461_status', 'Locked')}`")
-
-                # =============================================================
-                # FIXED: STEP 2 COMMERCIAL ESCROW DATA HANDSHAKE
-                # =============================================================
-                with st.expander("🔒 Step 2: Commercial Escrow Contract"):
-                    if vault_data.get("escrow_funded") == True:
-                        escrow_condition = "🔒 Funds Fully Locked & Secured ($85,000.00)"
-                    else:
-                        escrow_condition = "⏳ Awaiting Buyer Escrow Funding Deposit"
-                    st.markdown(f"**Transaction Settlement Condition:** `{escrow_condition}`")
-                    st.markdown(f"**Governing Contract Trade Framework:** `Incoterm: FOB (Free On Board)`")
-                    st.caption("💳 Financial Protection: Capital cannot clear to seller until all downstream border gates pass.")
-
-                with st.expander("🔬 Step 3: Biosecurity Clearance"):
-                    st.markdown(f"**Phytosanitary Serial:** `{vault_data.get('phyto_serial', 'Awaiting Exporter Action')}`")
-                    
-                # =============================================================
-                # FIXED: STEP 4 OCEAN CARRIER MANDATORY FREIGHT MANIFEST
-                # =============================================================
-                with st.expander("🚢 Step 4: Ocean Carrier Freight Manifest"):
-                    st.markdown(f"**Assigned Ocean Container ID:** `{vault_data.get('container_num', 'Awaiting Port Loading')}`")
-                    st.markdown(f"**Carrier SCAC Code Line:** `{vault_data.get('carrier_scac', 'Pending Carrier Allocation')}`")
-                    st.markdown(f"**Master Bill of Lading (B/L) String:** `{vault_data.get('bill_of_lading', 'Pending Freight Release')}`")
-                    st.caption("📍 Telemetry: Container links to live tracking telemetry systems.")
-
-                with st.expander("📋 Step 5: Border Documentation (CBP 3461)"):
-                    st.markdown(f"**Ocean Container Assignment ID:** `{vault_data.get('container_num', 'Awaiting Loading')}`")
-                    st.markdown(f"**ACE Transmit Status:** `{vault_data.get('cbp_3461_status', 'Locked')}`")
-
-
-        
-        # --- PHASE 6: DISBURSEMENT SETTLEMENT ---
-        elif st.session_state.current_step == 6:
-            st.subheader("🎉 Phase 6: Smart Escrow Release & Settlement")
-            st.balloons()
-            st.success("🏆 Delivery Confirmed! The pipeline has completed with an unbroken data trail.")
-            st.write("🟢 **$85,000.00 USD** transferred securely from Escrow directly to the Cooperative's banking profile.")
-            
-            if st.button("🔄 Reset Engine Pipeline for New Demo Session", key="p4_reset_pipeline_btn"):
-                st.session_state.current_step = 0
-                st.session_state.workflow_data = {
-                    "coop_name": "Andean Coffee Co-Op", "coop_tax_id": "", "land_title_num": "", 
-                    "lot_moisture": 12.0, "cupping_score": 84.5, "escrow_funded": False, "phyto_serial": "", 
-                    "container_num": "", "carrier_scac": "", "bill_of_lading": "", "entry_num": "", "cbp_3461_status": "Locked"
-                }
-                st.rerun()
+                    st.error("⚠️ All file uploads are mandatory to complete document cross-checking workflows.")
+        st.stop() # Freeze view execution context to block the remaining app layer panels
+# Append or merge this logic directly below Section 2's components
 
 # ==============================================================================
-# 🌧️ PANEL 5: CONTINGENCY ARBITRATOR & LIBRARY EXPANDERS
+# 🏢 SECTION 3: AUTOMATED INGESTION LAYER (THE BUYER LAYER)
 # ==============================================================================
-# Only display this operational telemetry tracker if you are past the diagnostic onboarding view
-if current_role != "1. Discovery & Diagnostic Panel":
-    st.divider()
-    col_left_exceptions, col_right_library = st.columns(2)
+st.divider()
+st.subheader("🏢 Day 0 Initial Contract Ingestion Layer")
+st.write("Bypass manual counterparty data entry. Initialize a trade contract parameter check to trigger automated background LEI validation.")
 
-    with col_left_exceptions:
-        st.subheader("🚨 Ocean Transit Contingency Control")
-        st.write("Simulate real-world supply chain exceptions to present your platform arbitration logic:")
-        
-        btn_c1, btn_c2, btn_c3 = st.columns(3)
-        if btn_c1.button("🌧️ Weather / Storm at Sea", key="p5_storm_contingency_btn"):
-            st.session_state.active_contingency = "Carrier Storm Delay"
-        if btn_c2.button("🦠 Mold Found at Port", key="p5_mold_contingency_btn"):
-            st.session_state.active_contingency = "Biological Failure"
-        if btn_c3.button("☀️ Clean Voyage Tracker", key="p5_clean_contingency_btn"):
-            st.session_state.active_contingency = "Clear Transit"
-            
-        st.markdown("##### **Automated Platform Referee Response:**")
-        if st.session_state.active_contingency == "Carrier Storm Delay":
-            st.warning("⚠️ **Schedule Disturbance Logged via Carrier Telemetry API**\n\n*Liability Ruling:* Under FOB terms, the Cooperative is not at fault. Escrow remains safely locked. Timeline adjustments automated.")
-        elif st.session_state.active_contingency == "Biological Failure":
-            st.error("❌ **Hygiene Failure Exception Tripped**\n\n*Liability Ruling:* Target moisture threshold breached. **Escrow Payout Suspended.** Funds queued for 100% buyer repayment loop.")
-        else:
-            st.success("🟢 **Telemetry Normal**\n\nContainer environment variables stable. Cargo routing smoothly.")
-
-    with col_right_library:
-        st.subheader("📂 Centralized Document Archive Vault")
-        w_data = st.session_state.workflow_data
-        
-        with st.expander("📄 Step 0: Origin Legal Framework"):
-            st.markdown(f"**Cooperative Tax Identifier:** `{w_data.get('coop_tax_id', 'Awaiting Upload')}`\n\n**Deed Reference ID:** `{active_coop.get('legal_gps_eudr', 'Awaiting Onboarding')}`")
-        with st.expander("🌾 Step 1: Crop Metric Logs"):
-            st.markdown(f"**Pre-Loading Moisture Value:** `{w_data.get('lot_moisture', 12.0)}%`\n\n**Sensory Quality Score:** `{w_data.get('cupping_score', 0.0)} Points`")
-        with st.expander("🔬 Step 3: Biosecurity Clearance"):
-            st.markdown(f"**Phytosanitary Serial:** `{w_data.get('phyto_serial', 'Awaiting Exporter Action')}`")
-        with st.expander("📋 Step 5: Border Documentation (CBP 3461)"):
-            st.markdown(f"**Ocean Container Assignment ID:** `{w_data.get('container_num', 'Awaiting Loading')}`\n\n**ACE Transmit Status:** `{w_data.get('cbp_3461_status', 'Locked')}`")
-
-# ==============================================================================
-# 🏁 PANEL 6: INTERACTIVE COMPETITIVE MATRIX VIEWER & DATA PASSPORT EXPORT
-# ==============================================================================
-if current_role != "1. Discovery & Diagnostic Panel":
-    st.divider()
-    st.markdown("## 🏁 The Sovereign Competitive Advantage")
-
-    competitor_grid = {
-        "Capability / Feature Milestone": [
-            "🚜 Land Title Verification & GPS Mapping (Step 0)", 
-            "🌾 Crop Quality & Moisture Metrics Log (Step 1)", 
-            "☕ Visual Marketing Lookbook for Premium Buyers", 
-            "🔒 Secure Escrow Financial Checkout Backend", 
-            "🔬 Local Exporter Side-by-Side Data Pre-Fills", 
-            "🚢 Ocean Carrier Telemetry API Integration", 
-            "📋 Automated US Customs Entry Processing (CBP 3461)"
-        ],
-        "Traditional Field Apps (AgUnity / TerraTrac / Mergdata)": [
-            "✅ Yes (Excellent field tools)", 
-            "✅ Yes (Agronomy focus)", 
-            "❌ No (Strictly auditing tools)", 
-            "❌ No (No built-in payment rails)", 
-            "❌ No (Data trapped in silos)", 
-            "❌ No (Blind to ocean transit)", 
-            "❌ No (Manual email loops)"
-        ],
-        "Our Sovereign Pipeline Engine": [
-            "✅ Yes (Enformed Gatekeeper)", 
-            "✅ Yes (Bound to Lot Profile)", 
-            "🚀 Included (Drives New Sales)", 
-            "🚀 Included (Protects Capital)", 
-            "🚀 Included (Zero-Typo Workspaces)", 
-            "🚀 Included (Live Status Tracker)", 
-            "🏆 Included (One-Click Pre-Fill)"
-        ]
+# Simulated External LEI Global API Database (No manual login required)
+LEI_GLOBAL_REGISTRY = {
+    "US-COMMODITIES-99": {
+        "lei_id": "LEI-US-992318451",
+        "legal_name": "US Commodity Distribution LLC",
+        "jurisdiction": "United States (Delaware)",
+        "entity_status": "ACTIVE / VERIFIED",
+        "credit_risk_rating": "AA+"
+    },
+    "EURO-GRAIN-88": {
+        "lei_id": "LEI-EU-883471029",
+        "legal_name": "Euro-Grain Wholesale NV",
+        "jurisdiction": "Belgium (Brussels)",
+        "entity_status": "ACTIVE / VERIFIED",
+        "credit_risk_rating": "A-"
     }
+}
 
-    view_toggle = st.radio(
-        "Select Matrix Evaluation Scope:", 
-        ["Show Complete Ecosystem Grid", "Show Post-Farm Gate Gaps (Where Competitors Fail)"], 
-        key="p6_matrix_view_toggle_radio"
-    )
+# Day 0 Ingestion Interface
+col_ingest_1, col_ingest_2 = st.columns([1.2, 2])
 
-    if view_toggle == "Show Complete Ecosystem Grid":
-        st.dataframe(pd.DataFrame(competitor_grid), use_container_width=True, hide_index=True)
-    else:
-        st.dataframe(pd.DataFrame(competitor_grid).iloc[2:], use_container_width=True, hide_index=True)
-        st.warning("⚠️ **The Competitor Bottleneck:** Notice that traditional field apps stop entirely once the crop leaves the farm gate, dropping stakeholders back into the manual email mess.")
+with col_ingest_1:
+    st.markdown("#### **Day 0 Parameter Ingestion**")
+    with st.form("day_0_ingestion_form"):
+        # Select target pre-vetted corporate nodes to simulate automated lookup triggers
+        buyer_node_key = st.selectbox(
+            "Select Target Importer Node:", 
+            options=list(LEI_GLOBAL_REGISTRY.keys()),
+            format_func=lambda x: LEI_GLOBAL_REGISTRY[x]["legal_name"]
+        )
+        
+        seller_lei_manual = st.text_input("Seller Identity Identifier / LEI:", value="LEI-CO-110293847")
+        target_hs_code = st.selectbox("Target HS Commodity Code:", options=list(HS_RULEBOOK.keys()))
+        invoice_value = st.number_input("Escrow Contract Value ($ USD):", min_value=10000, value=500000)
+        
+        submit_ingestion = st.form_submit_button("🚀 Ingest Contract & Pull LEI Metrics", use_container_width=True)
 
-    # --- PART 6 SUB-NODE: LAST-MILE PASSPORT TEXT DATA EXPORT ---
-    st.divider()
-    st.markdown("### ### 🛂 Official Last-Mile Document Ingress Automation")
-    st.info("🏢 Application Database Data Captured")
+if submit_ingestion:
+    with col_ingest_2:
+        st.markdown("#### **⚙️ Background API Telemetry Log**")
+        
+        # 1. Trigger automated simulated API background call to pull global registry metrics
+        with st.spinner("Pinging Global GLEIF API Database for corporate entity telemetry..."):
+            time.sleep(1) # Simulating network latency
+            fetched_lei_profile = LEI_GLOBAL_REGISTRY[buyer_node_key]
+            
+        st.success(f"✅ Background Handshake Success! Fetched Profile for {fetched_lei_profile['legal_name']}")
+        
+        # Display the fetched API telemetry components to the Lender inside the control room
+        st.json({
+            "API_Status": "200 OK",
+            "Fetched_LEI_String": fetched_lei_profile["lei_id"],
+            "Corporate_Jurisdiction": fetched_lei_profile["jurisdiction"],
+            "GLEIF_Verification_Status": fetched_lei_profile["entity_status"],
+            "Institutional_Credit_Rating": fetched_lei_profile["credit_risk_rating"]
+        })
+        
+        # 2. Automatically map and compile the structural record packet directly into the backend database ledger
+        new_trade_packet = {
+            "trade_id": f"BOX-{str(uuid.uuid4())[:5].upper()}",
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "buyer_lei": fetched_lei_profile["lei_id"], # Map pulled metrics directly
+            "seller_lei": seller_lei_manual,
+            "hs_code": target_hs_code,
+            "value": float(invoice_value),
+            "escrow_status": "⏳ AWAITING SELLER DROPBOX UPLOAD",
+            "risk_score": "LOW" if fetched_lei_profile["credit_risk_rating"] == "AA+" else "MEDIUM"
+        }
+        
+        # Push cleanly to our primary state database layer
+        st.session_state.trade_ledger.append(new_trade_packet)
+        st.toast("New Contract Successfully Ingested with LEI Mapping!", icon="🏢")
+        
+        time.sleep(2)
+        st.rerun()
+# Append or merge this logic directly below Section 3's components
 
-    # Safely unpack session variables or handle default calculations for fallback scenarios
-    val_protected = st.session_state.get("total_exposure_mitigated", 4200.00)
-    rev_unlocked = st.session_state.get("net_arbitrage_capital_won", 12500.00)
+# ==============================================================================
+# 🚢 SECTION 4: OCEAN CARRIER API INTEGRATION (THE LOGISTICS LAYER)
+# ==============================================================================
+st.divider()
+st.subheader("🚢 Automated Ocean Carrier API Webhook Gateway")
+st.write("Simulate server-to-server middleware webhooks. This removes human broker entry by tracking containers directly from carrier networks.")
 
-    st.markdown(f"""
-    - **Logged Entry ID:** `{active_coop.get('coop_id', 'COOP-LN01')}`
-    - **Producer Business Entity:** `{active_coop.get('entity_name', w_data['coop_name'])}`
-    - **Calculated Harmonized System Tariff Tag:** `HS Code 0901.11 (Green Coffee)`
-    - **Active Biological Safety Pass Token:** `{active_coop.get('phytosanitary_inspection', 'Failed ❌')}`
-    """)
+# Mock Ocean Carrier Telemetry API Payload Data Structure
+CARRIER_WEBHOOK_SIMULATOR = {
+    "BOX-TX991": {
+        "container_id": "MSKU9918234",
+        "carrier_scac": "MAEU (Maersk Line)",
+        "vessel_name": "MAERSK MC-KINNEY MOLLER",
+        "telemetry_status": "ARRIVED_AT_DESTINATION_PORT",
+        "container_temp_c": 19.5,
+        "gps_coordinates": "40.6892, -74.0445", # Port of NY/NJ
+        "system_alert_flags": "NONE"
+    },
+    "BOX-FL442": {
+        "container_id": "MSKU4421109",
+        "carrier_scac": "MAEU (Maersk Line)",
+        "vessel_name": "MAERSK ELEONORA",
+        "telemetry_status": "EN_ROUTE_SEA_TRANSIT",
+        "container_temp_c": 28.2, # Warning: Temperature spike detected
+        "gps_coordinates": "24.8607, 67.0011",
+        "system_alert_flags": "BIOLOGICAL_HUMIDITY_ALERT"
+    }
+}
 
-    # Pre-compile text string block data payload
-    export_passport_payload = f"""==================================================
-    BLACK ONYX COMPLIANCE PASSPORT COOP ID: {active_coop.get('coop_id', 'COOP-LN01')}
-    ==================================================
-    - Score: {st.session_state.current_step} / 6 Milestones Passed
-    - Sourcing Risk Value Protected: ${val_protected:,.2f} USD
-    - Trapped Revenue Unlocked : ${rev_unlocked:,.2f} USD
-    =================================================="""
+col_ship_1, col_ship_2 = st.columns([1.2, 2])
 
-    # Clean single-click downloader execution (Fixed your nested button runtime crash bug)
-    st.download_button(
-        label="📥 Download Compiled CBP Form 3461 Text Passport Asset", 
-        data=export_passport_payload, 
-        file_name=f"BlackOnyx_Compliance_Passport_{active_coop.get('coop_id', 'COOP-LN01')}.txt", 
-        mime="text/plain", 
-        key="bottom_download_passport_button_clean_execution"
-    )
+with col_ship_1:
+    st.markdown("#### **Simulate Webhook Trigger**")
+    st.write("Select an active transaction tracking token to mimic an automated server update push from Maersk API endpoints:")
+    
+    # Target trades currently tracked in system memory
+    active_tracking_choices = [t["trade_id"] for t in st.session_state.trade_ledger]
+    selected_tracking_id = st.selectbox("Select Target Container Pipeline To Ping:", options=active_tracking_choices, key="carrier_api_select_box")
+    
+    trigger_webhook = st.button("📡 Ingest Automated Carrier Webhook Payload", use_container_width=True)
 
-    st.divider()
-    st.caption("🔒 Black Onyx Advisory Core Terminal. Protected under international trade database encryption protocols.")
-
-
-
-
+if trigger_webhook:
+    with col_ship_2:
+        st.markdown("#### **🛠️ Server-to-Server JSON Payload Parsing**")
+        
+        # Pull mock telemetric records matching selected trade token
+        if selected_tracking_id in CARRIER_WEBHOOK_SIMULATOR:
+            telemetry_payload = CARRIER_WEBHOOK_SIMULATOR[selected_tracking_id]
+            
+            with st.spinner("Parsing asynchronous webhook data stream..."):
+                time.sleep(1) # Simulating API latency
+                
+            st.code(f"""
+            // POST /api/v1/logistics/webhook HTTP/1.1
+            // Host: ://blackonyx.com
+            // X-Carrier-Signature: sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+            
+            {str(telemetry_payload).replace("'", '"')}
+            """, language="json")
+            
+            # 2. Mutate active ledger profiles dynamically based on the webhook status data flags
+            for trade in st.session_state.trade_ledger:
+                if trade["trade_id"] == selected_tracking_id:
+                    # Update status maps according to container alert values
+                    if telemetry_payload["system_alert_flags"] == "BIOLOGICAL_HUMIDITY_ALERT":
+                        trade["escrow_status"] = "🚨 LOCKED / BIOLOGICAL ANOMALY DETECTED"
+                        trade["risk_score"] = "HIGH"
+                        st.error(f"❌ **Risk Flag Raised:** Biological anomaly detected on Container {telemetry_payload['container_id']}. Escrow lock engaged automatically.")
+                    else:
+                        trade["escrow_status"] = "🚢 EN-ROUTE / TELEMETRY NORMAL"
+                        trade["risk_score"] = "LOW"
+                        st.success(f"✔️ **Transit Stream Normal:** Container {telemetry_payload['container_id']} is tracking cleanly inside structural parameters.")
+                        
+            st.toast("Trade state updated via Carrier Webhook!", icon="🚢")
+            time.sleep(2)
+            st.rerun()
+        else:
+            # Fallback dynamic packet generator for freshly ingested user custom entries
+            st.info("🔄 Initializing carrier channel matching for newly compiled entry records...")
+            for trade in st.session_state.trade_ledger:
+                if trade["trade_id"] == selected_tracking_id:
+                    trade["escrow_status"] = "🚢 EN-ROUTE / TELEMETRY NORMAL"
+            st.success("New default carrier tracking stream established for this transaction token.")
+            time.sleep(1)
+            st.rerun()
