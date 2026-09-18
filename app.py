@@ -49,13 +49,27 @@ HS_RULEBOOK = {
 # ==============================================================================
 # 🔏 STANDALONE SECURITY AUTHENTICATION GATEWAY
 # ==============================================================================
+# ==============================================================================
+# 🔏 STANDALONE SECURITY AUTHENTICATION GATEWAY (WITH BYPASS FOR DEMOS)
+# ==============================================================================
 if not st.session_state.authenticated:
     st.title("🔒 Black Onyx Middleware Authentication")
     st.write("Access Restricted: This terminal requires a verified permanent Private Lender security credential.")
     
+    # ⚡ CONVENTION DEMO QUICK BYPASS (One-click unlock for testing)
+    st.info("💡 **Presentation Shortcut:** Check 'Enable Demo Mode' below to instantly bypass this gate without typing credentials.")
+    demo_bypass = st.checkbox("⚡ Enable Convention Demo Mode / Quick Unlock")
+    
+    if demo_bypass:
+        st.session_state.authenticated = True
+        st.success("Demo Mode Authorized. Unlocking terminal...")
+        time.sleep(1)
+        st.rerun()
+        
+    # Standard Manual Login Form Layout
     with st.form("lender_auth_gate"):
-        username = st.text_input("Financier Login Identifier:")
-        password = st.text_input("Security Encryption Key:", type="password")
+        username = st.text_input("Financier Login Identifier:", value="lender@blackonyx.com")
+        password = st.text_input("Security Encryption Key:", value="blackonyx2026", type="password")
         submit_login = st.form_submit_button("Verify Identity & Unlock Middleware Core", use_container_width=True)
         
         if submit_login:
@@ -67,6 +81,7 @@ if not st.session_state.authenticated:
             else:
                 st.error("Access Denied: Invalid security configuration strings or key signature.")
     st.stop()
+
 
 # ==============================================================================
 # 🏛️ CORE DASHBOARD CONTROL ROOM (THE MAIN UI PANEL)
