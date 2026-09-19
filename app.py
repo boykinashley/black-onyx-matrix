@@ -614,13 +614,22 @@ else:
                     text = page.extract_text()
                     if text:
                         extracted_text += text + "\n"
-            
+
+                        # --- REPLACE your old if/else block with this exact code ---
             if provider_choice == "Google Gemini (Free Tier)":
-                client = OpenAI(api_key=api_key, base_url="https://googleapis.com")
+                client = OpenAI(
+                    api_key=api_key,
+                    base_url="https://googleapis.com"
+                )
                 model_name = "gemini-2.5-flash"
             else:
-                client = OpenAI(api_key=api_key, base_url="https://groq.com")
+                client = OpenAI(
+                    api_key=api_key,
+                    base_url="https://groq.com"
+                )
                 model_name = "llama-3.3-70b-versatile"
+            # -----------------------------------------------------------
+
                 
             system_instruction = "Extract the HS Code, FOB Value, Country, and run the risk matrix analysis."
             
