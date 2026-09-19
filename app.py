@@ -404,3 +404,144 @@ if trigger_webhook:
             st.success("New default carrier tracking stream established for this transaction token.")
             time.sleep(1)
             st.rerun()
+
+
+# ==============================================================================
+# 🎛️ UNDERWRITING RISK ENGINE CORE FUNCTION
+# ==============================================================================
+def calculate_risk_profile(data, value):
+    score = 0
+    covenants = []
+    
+    # 1. Tariff & Margin Drag Evaluation
+    total_tariff_exposure = data["base_duty_rate"] + data["section_301_tariff"]
+    if total_tariff_exposure > 20.0:
+        score += 40
+        covenants.append("💰 **Duty Escrow Required:** High tariff exposure detected. Borrower must pre-fund duty cash buffer.")
+    elif total_tariff_exposure > 5.0:
+        score += 20
+    else:
+        score += 5
+
+    # 2. Operational / Regulatory Delay Evaluation (PGA Flagger)
+    if data["has_pga_flag"]:
+        score += 35
+        agencies_str = ", ".join(data["pga_agencies"])
+        covenants.append(f"⏳ **PGA Hold Mitigation:** Goods subject to {agencies_str} oversight. Verify pre-clearance filings.")
+    else:
+        score += 10
+
+    # 3. Collateral Marketability Evaluation
+    if data["liquidity_classification"] == "High":
+        score += 5
+        base_advance = 0.85
+    elif data["liquidity_classification"] == "Moderate":
+        score += 20
+        base_advance = 0.75
+    else:
+        score += 45
+        base_advance = 0.55
+        covenants.append("📉 **Alternative Recourse:** Low collateral liquidity. Require parent corporate guarantee.")
+
+    # 4. Final Risk Tier and Capital Limits Matrix
+    # Max possible raw points = 120
+    normalized_score = int((score / 120) * 100)
+    
+    if normalized_score <= 35:
+        tier = "🟢 Low Risk Profile"
+        final_advance_rate = base_advance
+    elif normalized_score <= 65:
+        tier = "🟡 Moderate Risk Profile"
+        final_advance_rate = base_advance - 0.05
+    else:
+        tier = "🔴 High Risk Profile"
+        final_advance_rate = base_advance - 0.15
+
+    max_capital_outlay = value * final_advance_rate
+
+    return normalized_score, tier, final_advance_rate, max_capital_outlay, covenants
+
+
+# ==============================================================================
+# 📊 CONTROL ROOM INTERFACE LAYER
+# ==============================================================================
+st.subheader("📊 Black Onyx Active Trade Ledger")
+df_ledger = pd.DataFrame(st.session_state.trade_ledger)
+st.dataframe(df_ledger, use_container_width=True)
+
+st.markdown("---")
+
+# Split layout for Risk Evaluation and Sourcing Mock Repository
+st.subheader("🔍 Lender Risk Underwriting Panel")
+col_panel, col_results = st.columns(2)
+
+with col_panel:
+    st.markdown("#### 🛠️ Risk Parameter Assignment")
+    
+    # Let user pick a trade transaction from your state machine ledger
+    selected_trade_id = st.selectbox(
+        "Select Active Ledger ID to Underwrite:", 
+        options=[tx["trade_id"] for tx in st.session_state.trade_ledger]
+    )
+    
+    # Retrieve active trade data from ledger
+    active_tx = next(item for item in st.session_state.trade_ledger if item["trade_id"] == selected_trade_id)
+    
+    # Match against global baseline rulebook layer if available
+    rulebook_info = HS_RULEBOOK.get(active_tx["hs_code"], {"commodity": "Unknown Item", "max_variance_pct": 1.0})
+    
+    # Sidebar or Panel Overrides matching our mock data parameters
+    country_of_origin = st.selectbox("Sourcing Country of Origin:", ["Thailand", "China", "Taiwan", "Germany", "Mexico"], index=0)
+    
+    # Context-aware mock variables setup based on active HS Code
+    if active_tx["hs_code"] == "0901.11":
+        base_duty = 0.0
+        pga_flag = True
+        pga_list = ["FDA", "USDA"]
+        liquidity = "High"
+    elif active_tx["hs_code"] == "8802.40":
+        base_duty = 5.0
+        pga_flag = True
+        pga_list = ["FAA", "BIS"]
+        liquidity = "Low"
+    else:
+        base_duty = 2.5
+        pga_flag = False
+        pga_list = []
+        liquidity = "Moderate"
+
+    # Encapsulate parameters into engine payload format
+    simulated_payload = {
+        "htsus": active_tx["hs_code"],
+        "base_duty_rate": base_duty,
+        "section_301_tariff": 25.0 if country_of_origin == "China" else 0.0,
+        "has_pga_flag": pga_flag,
+        "pga_agencies": pga_list,
+        "liquidity_classification": liquidity
+    }
+    
+    st.caption(f"**Associated Rulebook Entity:** {rulebook_info['commodity']} (Max Allowed Variance: {rulebook_info['max_variance_pct']}%)")
+
+with col_results:
+    st.markdown("#### 🧮 Automated Risk Analysis Metrics")
+    
+    # Execute Underwriting Matrix Scoring
+    risk_score, risk_tier, advance_rate, max_outlay, dynamic_cps = calculate_risk_profile(
+        simulated_payload, active_tx["value"]
+    )
+    
+    # Score metrics rendering layer
+    metric_col1, metric_col2 = st.columns(2)
+    with metric_col1:
+        st.metric(label="Calculated Matrix Score", value=f"{risk_score} / 100", delta=risk_tier, delta_color="inverse")
+        st.metric(label="Target Contract Advance", value=f"{advance_rate * 100:.1f}%")
+    with metric_col2:
+        st.metric(label="Transaction Value Evaluated", value=f"${active_tx['value']:,.2f}")
+        st.metric(label="Max Capital Limit Allocation", value=f"${max_outlay:,.2f}")
+        
+    st.markdown("##### 📋 Generated Conditions Precedent (CPs)")
+    if dynamic_cps:
+        for cp in dynamic_cps:
+            st.markdown(cp)
+    else:
+        st.markdown("✅ **Standard Framework Verification:** Asset parameters meet target structural margins.")
