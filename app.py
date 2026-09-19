@@ -556,23 +556,17 @@ import json
 import io
 import streamlit as st
 
-try:
-    import pdfplumber
-    from google import genai
-    from google.genai import types
-    from pydantic import BaseModel
-    import_success = True
-except ImportError:
-    import_success = False
+# PASTE THIS EXACT CLEAN REPLACEMENT HERE:
+import pypdf
+from google import genai
+from google.genai import types
+from pydantic import BaseModel
 
 st.write("---") 
 
-if not import_success:
-    st.error("⚠️ Dependencies are still installing in GitHub Cloud. Please wait a minute and refresh.")
-else:
-    with st.expander("🛡️ OPEN TRADE COMPLIANCE SYSTEM CONTROL ROOM", expanded=False):
-        st.title("🎛️ Customs & Ledger Operations Control Center")
-        st.caption("Automated Trade Ledger Routing, Customs Verification, and Risk Mitigation Console")
+# This opens the compliance control room drawer immediately on page refresh
+with st.expander("🛡️ OPEN TRADE COMPLIANCE SYSTEM CONTROL ROOM", expanded=True):
+
         
         # Hardcoded Matrix Lookups
         HS_ROUTING_MATRIX = {
