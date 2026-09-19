@@ -6,6 +6,6 @@ pandas>=2.0.0
 
 #Added for the PDF Trade Parser
 streamlit
-openai
-pydantic
+google-genai
 pdfplumber
+
