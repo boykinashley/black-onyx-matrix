@@ -550,13 +550,12 @@ with col_results:
 # 🚀 ADDED TO THE BOTTOM: TRADE CONTRACT AI PARSER & LEDGER ROUTER TOOL
 # =====================================================================
 # =====================================================================
-# 🚀 FIX: CLEAN NATIVE GEMINI TRADE ENGINE TOOL (100% FREE)
+# 🚀 UPGRADED: NATIVE GEMINI TRADE COMPLIANCE CONTROL ROOM (100% FREE)
 # =====================================================================
 import json
 import io
 import streamlit as st
 
-# Clean, native imports without any OpenAI translation layers
 try:
     import pdfplumber
     from google import genai
@@ -566,15 +565,16 @@ try:
 except ImportError:
     import_success = False
 
-st.write("---") # Visual divider from your original tool
+st.write("---") 
 
 if not import_success:
     st.error("⚠️ Dependencies are still installing in GitHub Cloud. Please wait a minute and refresh.")
 else:
-    with st.expander("💼 Open Trade Contract AI Engine Tool", expanded=False):
-        st.subheader("🗒 Trade Contract AI Parser & Ledger Router")
+    with st.expander("🛡️ OPEN TRADE COMPLIANCE SYSTEM CONTROL ROOM", expanded=False):
+        st.title("🎛️ Customs & Ledger Operations Control Center")
+        st.caption("Automated Trade Ledger Routing, Customs Verification, and Risk Mitigation Console")
         
-        # Hardcoded Deterministic Lookups
+        # Hardcoded Matrix Lookups
         HS_ROUTING_MATRIX = {
             "0901": {
                 "commodity_group": "Agricultural Resources",
@@ -602,7 +602,6 @@ else:
             }
         }
 
-        # Enforced structural parsing contract schema
         class TradeContractSchema(BaseModel):
             extracted_hs_code: str
             contract_value_fob: float
@@ -611,18 +610,23 @@ else:
             risk_rubric_score: int
             rubric_compliance_notes: list[str]
 
-        # Clean Native Google Gemini Client Initialization
-        gemini_key = st.text_input("Enter Free Gemini API Key", type="password", key="gemini_key_input")
-        if not gemini_key:
-            st.info("💡 Get a free key at aistudio.google.com and paste it above.")
+        # -----------------------------------------------------------------
+        # CONTROL ROOM CONFIGURATION BAR
+        # -----------------------------------------------------------------
+        st.markdown("### ⚙️ System Ingestion Links")
+        cfg_col1, cfg_col2 = st.columns([1, 2])
+        with cfg_col1:
+            gemini_key = st.text_input("Gemini Node Key", type="password", key="ctrl_gemini_key")
+        with cfg_col2:
+            uploaded_file = st.file_uploader("Ingest Trade Contract manifest (PDF)", type=["pdf"], key="ctrl_pdf_uploader")
             
-        uploaded_file = st.file_uploader("Upload Contract (PDF)", type=["pdf"], key="trade_pdf_uploader")
-        
+        if not gemini_key:
+            st.info("💡 Input your free Gemini API key to activate the Control Center link pathways.")
+
         if uploaded_file and gemini_key:
-            if st.button("Execute Live Document Analysis", key="trade_run_btn"):
-                with st.spinner("Extracting and evaluating contract..."):
+            if st.button("🔴 INITIALIZE TRANSACTION SCAN SEQUENCE", key="ctrl_trigger_btn", use_container_width=True):
+                with st.spinner("Executing system scanning parameters..."):
                     try:
-                        # In-memory text extraction from the PDF
                         extracted_text = ""
                         with pdfplumber.open(io.BytesIO(uploaded_file.getvalue())) as pdf:
                             for page in pdf.pages:
@@ -631,26 +635,12 @@ else:
                                     extracted_text += text + "\n"
 
                         if not extracted_text.strip():
-                            st.error("Could not read any text layers inside this PDF file.")
+                            st.error("SYSTEM CRITICAL: Terminal read failed. PDF text layers blank.")
                             st.stop()
 
-                        # Configure client using native google-genai library
                         client = genai.Client(api_key=gemini_key)
-                        
-                        prompt = f"""
-                        Analyze this contract data text. Locate the primary commodity, find its target Harmonized System (HS Code), 
-                        and extract the total value of the shipment (FOB).
-                        
-                        Run an analysis against this Risk Matrix Rubric:
-                        - Base score starts at 10.
-                        - Add +35 if payment terms/runway exceed 60 days (liquidity strain).
-                        - Add +20 if counterparty country has high geopolitical or trade friction risk.
-                        
-                        Contract Data Text:
-                        {extracted_text}
-                        """
+                        prompt = f"Extract target HS Code, FOB asset value, country, payment structural bounds, and apply the strict risk rubric schema matrix:\n{extracted_text}"
 
-                        # Direct native structured request using Pydantic schemas
                         response = client.models.generate_content(
                             model='gemini-2.5-flash',
                             contents=prompt,
@@ -659,37 +649,70 @@ else:
                                 response_schema=TradeContractSchema,
                             ),
                         )
-                        
-                        # Parse the native response safely
                         ai_output = json.loads(response.text)
                         
-                        # Render UI Layout Columns
-                        col1, col2 = st.columns(2)
-                        with col1:
-                            st.subheader("📊 Extraction Data")
-                            st.json(ai_output)
-                            
-                        with col2:
-                            st.subheader("💼 General Ledger Postings")
-                            raw_code = ai_output.get("extracted_hs_code", "")
-                            heading_key = raw_code.replace(".", "").strip()[:4]
-                            
+                        raw_code = ai_output.get("extracted_hs_code", "").strip()
+                        heading_key = raw_code.replace(".", "")[:4]
+                        
+                        # -----------------------------------------------------------------
+                        # CONTROL ROOM OPERATIONS DASHBOARD INTERFACE
+                        # -----------------------------------------------------------------
+                        st.subheader("🖥️ Live Operations Grid")
+                        
+                        # Row 1: System Health Status & Main Gates
+                        stat_col1, stat_col2, stat_col3 = st.columns(3)
+                        with stat_col1:
+                            st.metric("COMMODITY PROFILE", ai_output.get("counterparty_country", "UNKNOWN").upper())
+                            st.caption("Origin Node Verified")
+                        with stat_col2:
+                            risk_val = ai_output.get("risk_rubric_score", 0)
+                            st.metric("AGGREGATED RISK METRIC", f"{risk_val} / 100")
+                            if risk_val > 45:
+                                st.error("🛑 ESCALATED RISK EXPOSURE DETECTED")
+                            else:
+                                st.success("🟢 SECURITY BOUNDS NOMINAL")
+                        with stat_col3:
+                            if heading_key in HS_ROUTING_MATRIX:
+                                st.metric("CUSTOMS CONSOLE GATEWAY", f"HS {heading_key}")
+                                st.info(f"PGA Pipeline: {HS_ROUTING_MATRIX[heading_key]['primary_agency']}")
+                            else:
+                                st.metric("CUSTOMS CONSOLE GATEWAY", "UNMAPPED")
+                                st.error("❌ ROUTING FAULT: HS UNKNOWN")
+
+                        st.divider()
+
+                        # Row 2: Financial Routing Registers vs System Audit Log
+                        data_col1, data_col2 = st.columns([4, 5])
+                        with data_col1:
+                            st.markdown("#### 📊 Dynamic Ledger Register Adjustment")
                             if heading_key in HS_ROUTING_MATRIX:
                                 rule = HS_ROUTING_MATRIX[heading_key]
-                                fob = ai_output.get("contract_value_fob", 0.0)
-                                duty = fob * rule["base_duty_rate"]
+                                fob_val = ai_output.get("contract_value_fob", 0.0)
+                                duties_calculated = fob_val * rule["base_duty_rate"]
                                 
-                                st.metric("Asset Value (Debit)", f"${fob:,.2f}", delta=rule["debit_account"])
-                                st.metric("Customs Duty Expected", f"${duty:,.2f}", delta="5120-Import-Duties")
-                                st.warning(f"Required Safety Pipeline: {rule['compliance_pipeline']}")
+                                st.code(f"""
+[DEBIT REGISTERED]
+Account:  {rule['debit_account']}
+Amount:   ${fob_val:,.2f}
+
+[DEBIT REGISTERED]
+Account:  5120-Import-Taxes-and-Duties
+Amount:   ${duties_calculated:,.2f}
+
+[CREDIT CLEARING]
+Account:  2100-Accounts-Payable-Trade
+Amount:   ${fob_val + duties_calculated:,.2f}
+                                """, language="text")
                             else:
-                                st.error(f"HS Heading '{heading_key}' not hardcoded in lookups. Add it to HS_ROUTING_MATRIX.")
+                                st.write("Ledger generation paused. Correct classification code required.")
+
+                        with data_col2:
+                            st.markdown("#### 🗒️ Automated Risk Matrix Audit Logs")
+                            for index, note in enumerate(ai_output.get("rubric_compliance_notes", [])):
+                                st.info(f"Log Item [{index+1}]: {note}")
                                 
-                        st.divider()
-                        st.subheader("⚠️ Risk Matrix Score Card")
-                        st.metric("Risk Score", f"{ai_output.get('risk_rubric_score', 0)} / 100")
-                        for note in ai_output.get('rubric_compliance_notes', []):
-                            st.markdown(f"- {note}")
-                            
+                            if heading_key in HS_ROUTING_MATRIX:
+                                st.warning(f"Compliance Release Target: Run system validation task pipeline [{HS_ROUTING_MATRIX[heading_key]['compliance_pipeline']}]")
+
                     except Exception as e:
-                        st.error(f"Analysis failed: {str(e)}")
+                        st.error(f"SYSTEM FAULT IN CONSOLE: {str(e)}")
