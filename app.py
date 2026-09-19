@@ -545,3 +545,133 @@ with col_results:
             st.markdown(cp)
     else:
         st.markdown("✅ **Standard Framework Verification:** Asset parameters meet target structural margins.")
+
+# =====================================================================
+# 🚀 ADDED TO THE BOTTOM: TRADE CONTRACT AI PARSER & LEDGER ROUTER TOOL
+# =====================================================================
+import json
+import io
+
+# 1. We wrap the heavy libraries in defensive try/except blocks 
+# so if the server is still booting up, it won't crash your main app.
+try:
+    import pdfplumber
+    from openai import OpenAI
+    from pydantic import BaseModel
+    import_success = True
+except ImportError:
+    import_success = False
+
+st.write("---") # Adds a clean visual divider line at the bottom of your old tool
+
+if not import_success:
+    st.error("⚠️ Dependencies are still installing in GitHub Cloud. Please wait a minute and refresh.")
+else:
+    # 2. This creates a clean dropdown drawer at the bottom of your screen
+    with st.expander("💼 Open Trade Contract AI Engine Tool", expanded=False):
+        st.subheader("🗒 Trade Contract AI Parser & Ledger Router")
+        
+        # Hardcoded matrix definition inside the tool block
+        HS_ROUTING_MATRIX = {
+            "0901": {
+                "commodity_group": "Agricultural Resources",
+                "item_name": "Coffee / Tea Commodities",
+                "debit_account": "1410-Inventory-Raw-Agricultural-Materials",
+                "primary_agency": "FDA",
+                "compliance_pipeline": "FDA_PRIOR_NOTICE_AND_PHYTOSANITARY_RELEASE",
+                "base_duty_rate": 0.045
+            },
+            "8802": {
+                "commodity_group": "Aerospace Capital Goods",
+                "item_name": "Commercial Aircraft",
+                "debit_account": "1230-Fixed-Assets-Aircraft-Equipment",
+                "primary_agency": "FAA / BIS",
+                "compliance_pipeline": "FAA_AIRWORTHINESS_AND_EXPORT_CONTROL",
+                "base_duty_rate": 0.000
+            },
+            "8803": {
+                "commodity_group": "Aviation Parts",
+                "item_name": "Aerospace Components",
+                "debit_account": "1420-Inventory-Maintenance-Parts",
+                "primary_agency": "BIS",
+                "compliance_pipeline": "COMMERCE_CONTROL_LIST_DUAL_USE_SCREENING",
+                "base_duty_rate": 0.025
+            }
+        }
+
+        class TradeContractSchema(BaseModel):
+            extracted_hs_code: str
+            contract_value_fob: float
+            counterparty_country: str
+            payment_terms: str
+            risk_rubric_score: int
+            rubric_compliance_notes: list[str]
+
+        def extract_and_analyze_in_cloud(uploaded_file, api_key, provider_choice):
+            extracted_text = ""
+            with pdfplumber.open(io.BytesIO(uploaded_file.getvalue())) as pdf:
+                for page in pdf.pages:
+                    text = page.extract_text()
+                    if text:
+                        extracted_text += text + "\n"
+            
+            if provider_choice == "Google Gemini (Free Tier)":
+                client = OpenAI(api_key=api_key, base_url="https://googleapis.com")
+                model_name = "gemini-2.5-flash"
+            else:
+                client = OpenAI(api_key=api_key, base_url="https://groq.com")
+                model_name = "llama-3.3-70b-versatile"
+                
+            system_instruction = "Extract the HS Code, FOB Value, Country, and run the risk matrix analysis."
+            
+            completion = client.beta.chat.completions.parse(
+                model=model_name,
+                messages=[{"role": "system", "content": system_instruction}, {"role": "user", "content": extracted_text}],
+                response_format=TradeContractSchema
+            )
+            return json.loads(completion.choices.message.content)
+
+        # Tool Interface layout
+        provider = st.selectbox("Choose Free AI Provider", ["Google Gemini (Free Tier)", "GroqCloud (Free Tier)"], key="trade_provider")
+        user_api_key = st.text_input(f"Enter {provider} API Key", type="password", key="trade_key")
+        
+        if not user_api_key:
+            st.info("💡 To run a test, generate a free token via Google AI Studio or GroqConsole and paste it above.")
+            
+        uploaded_file = st.file_uploader("Upload Commercial Trade Contract (PDF)", type=["pdf"], key="trade_uploader")
+        
+        if uploaded_file and user_api_key:
+            if st.button("Execute Live Document Analysis", key="trade_submit_btn"):
+                with st.spinner("Processing PDF bytes in memory and analyzing trade ledger mapping..."):
+                    try:
+                        ai_output = extract_and_analyze_in_cloud(uploaded_file, user_api_key, provider)
+                        
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            st.subheader("📊 Structured Extraction Output")
+                            st.json(ai_output)
+                            
+                        with col2:
+                            st.subheader("💼 General Ledger Postings")
+                            raw_code = ai_output["extracted_hs_code"]
+                            heading_key = raw_code.replace(".", "")[:4]
+                            
+                            if heading_key in HS_ROUTING_MATRIX:
+                                rule = HS_ROUTING_MATRIX[heading_key]
+                                fob = ai_output["contract_value_fob"]
+                                duty = fob * rule["base_duty_rate"]
+                                
+                                st.metric("Asset Value (Debit)", f"${fob:,.2f}", delta=rule["debit_account"])
+                                st.metric("Customs Duty Expected", f"${duty:,.2f}", delta="5120-Import-Duties")
+                                st.warning(f"Required Safety Pipeline: {rule['compliance_pipeline']}")
+                            else:
+                                st.error(f"HS Heading {heading_key} not hardcoded in lookup dictionary.")
+                                
+                        st.divider()
+                        st.subheader("⚠️ Automated Risk Matrix Score Card")
+                        st.metric("Risk Score", f"{ai_output['risk_rubric_score']} / 100")
+                        for note in ai_output['rubric_compliance_notes']:
+                            st.markdown(f"- {note}")
+                    except Exception as e:
+                        st.error(f"Processing Error: {str(e)}")
+
