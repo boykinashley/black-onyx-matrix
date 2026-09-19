@@ -550,7 +550,7 @@ with col_results:
 # 🚀 ADDED TO THE BOTTOM: TRADE CONTRACT AI PARSER & LEDGER ROUTER TOOL
 # =====================================================================
 # =====================================================================
-# 🚀 CLEAN NATIVE GEMINI TRADE ENGINE TOOL (100% FREE)
+# 🚀 FIX: CLEAN NATIVE GEMINI TRADE ENGINE TOOL (100% FREE)
 # =====================================================================
 import json
 import io
@@ -561,6 +561,7 @@ try:
     import pdfplumber
     from google import genai
     from google.genai import types
+    from pydantic import BaseModel
     import_success = True
 except ImportError:
     import_success = False
@@ -601,10 +602,19 @@ else:
             }
         }
 
-        # Native Google Key Input (No credit card or payments needed)
+        # Enforced structural parsing contract schema
+        class TradeContractSchema(BaseModel):
+            extracted_hs_code: str
+            contract_value_fob: float
+            counterparty_country: str
+            payment_terms: str
+            risk_rubric_score: int
+            rubric_compliance_notes: list[str]
+
+        # Clean Native Google Gemini Client Initialization
         gemini_key = st.text_input("Enter Free Gemini API Key", type="password", key="gemini_key_input")
         if not gemini_key:
-            st.info("💡 Get a free key at ://google.com and paste it above.")
+            st.info("💡 Get a free key at aistudio.google.com and paste it above.")
             
         uploaded_file = st.file_uploader("Upload Contract (PDF)", type=["pdf"], key="trade_pdf_uploader")
         
@@ -620,24 +630,33 @@ else:
                                 if text:
                                     extracted_text += text + "\n"
 
-                        # Clean Native Google Gemini Client Initialization
+                        if not extracted_text.strip():
+                            st.error("Could not read any text layers inside this PDF file.")
+                            st.stop()
+
+                        # Configure client using native google-genai library
                         client = genai.Client(api_key=gemini_key)
                         
                         prompt = f"""
-                        Analyze this contract and return a JSON object with these EXACT keys:
-                        'extracted_hs_code' (string), 'contract_value_fob' (number), 'counterparty_country' (string), 
-                        'payment_terms' (string), 'risk_rubric_score' (number 0-100), 'rubric_compliance_notes' (list of strings).
+                        Analyze this contract data text. Locate the primary commodity, find its target Harmonized System (HS Code), 
+                        and extract the total value of the shipment (FOB).
                         
-                        Contract text:
+                        Run an analysis against this Risk Matrix Rubric:
+                        - Base score starts at 10.
+                        - Add +35 if payment terms/runway exceed 60 days (liquidity strain).
+                        - Add +20 if counterparty country has high geopolitical or trade friction risk.
+                        
+                        Contract Data Text:
                         {extracted_text}
                         """
 
-                        # Direct native structured request
+                        # Direct native structured request using Pydantic schemas
                         response = client.models.generate_content(
                             model='gemini-2.5-flash',
                             contents=prompt,
                             config=types.GenerateContentConfig(
-                                response_mime_type="application/json"
+                                response_mime_type="application/json",
+                                response_schema=TradeContractSchema,
                             ),
                         )
                         
@@ -653,7 +672,7 @@ else:
                         with col2:
                             st.subheader("💼 General Ledger Postings")
                             raw_code = ai_output.get("extracted_hs_code", "")
-                            heading_key = raw_code.replace(".", "")[:4]
+                            heading_key = raw_code.replace(".", "").strip()[:4]
                             
                             if heading_key in HS_ROUTING_MATRIX:
                                 rule = HS_ROUTING_MATRIX[heading_key]
@@ -664,7 +683,7 @@ else:
                                 st.metric("Customs Duty Expected", f"${duty:,.2f}", delta="5120-Import-Duties")
                                 st.warning(f"Required Safety Pipeline: {rule['compliance_pipeline']}")
                             else:
-                                st.error(f"HS Heading {heading_key} not hardcoded in lookup dictionary.")
+                                st.error(f"HS Heading '{heading_key}' not hardcoded in lookups. Add it to HS_ROUTING_MATRIX.")
                                 
                         st.divider()
                         st.subheader("⚠️ Risk Matrix Score Card")
