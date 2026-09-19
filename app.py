@@ -621,12 +621,13 @@ with st.expander("🛡️ OPEN TRADE COMPLIANCE SYSTEM CONTROL ROOM", expanded=T
             if st.button("🔴 INITIALIZE TRANSACTION SCAN SEQUENCE", key="ctrl_trigger_btn", use_container_width=True):
                 with st.spinner("Executing system scanning parameters..."):
                     try:
+                        # PASTE THIS EXACT CLEAN REPLACEMENT HERE:
                         extracted_text = ""
-                        with pdfplumber.open(io.BytesIO(uploaded_file.getvalue())) as pdf:
-                            for page in pdf.pages:
-                                text = page.extract_text()
-                                if text:
-                                    extracted_text += text + "\n"
+                        pdf_reader = pypdf.PdfReader(io.BytesIO(uploaded_file.getvalue()))
+                        for page in pdf_reader.pages:
+                            text = page.extract_text()
+                            if text:
+                                extracted_text += text + "\n"
 
                         if not extracted_text.strip():
                             st.error("SYSTEM CRITICAL: Terminal read failed. PDF text layers blank.")
