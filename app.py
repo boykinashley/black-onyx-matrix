@@ -549,29 +549,31 @@ with col_results:
 # =====================================================================
 # 🚀 ADDED TO THE BOTTOM: TRADE CONTRACT AI PARSER & LEDGER ROUTER TOOL
 # =====================================================================
+# =====================================================================
+# 🚀 CLEAN NATIVE GEMINI TRADE ENGINE TOOL (100% FREE)
+# =====================================================================
 import json
 import io
+import streamlit as st
 
-# 1. We wrap the heavy libraries in defensive try/except blocks 
-# so if the server is still booting up, it won't crash your main app.
+# Clean, native imports without any OpenAI translation layers
 try:
     import pdfplumber
-    from openai import OpenAI
-    from pydantic import BaseModel
+    from google import genai
+    from google.genai import types
     import_success = True
 except ImportError:
     import_success = False
 
-st.write("---") # Adds a clean visual divider line at the bottom of your old tool
+st.write("---") # Visual divider from your original tool
 
 if not import_success:
     st.error("⚠️ Dependencies are still installing in GitHub Cloud. Please wait a minute and refresh.")
 else:
-    # 2. This creates a clean dropdown drawer at the bottom of your screen
     with st.expander("💼 Open Trade Contract AI Engine Tool", expanded=False):
         st.subheader("🗒 Trade Contract AI Parser & Ledger Router")
         
-        # Hardcoded matrix definition inside the tool block
+        # Hardcoded Deterministic Lookups
         HS_ROUTING_MATRIX = {
             "0901": {
                 "commodity_group": "Agricultural Resources",
@@ -599,75 +601,63 @@ else:
             }
         }
 
-        class TradeContractSchema(BaseModel):
-            extracted_hs_code: str
-            contract_value_fob: float
-            counterparty_country: str
-            payment_terms: str
-            risk_rubric_score: int
-            rubric_compliance_notes: list[str]
-
-        def extract_and_analyze_in_cloud(uploaded_file, api_key, provider_choice):
-            extracted_text = ""
-            with pdfplumber.open(io.BytesIO(uploaded_file.getvalue())) as pdf:
-                for page in pdf.pages:
-                    text = page.extract_text()
-                    if text:
-                        extracted_text += text + "\n"
-
-                        # --- REPLACE your old if/else block with this exact code ---
-            if provider_choice == "Google Gemini (Free Tier)":
-                client = OpenAI(
-                    api_key=api_key,
-                    base_url="https://googleapis.com"
-                )
-                model_name = "gemini-2.5-flash"
-            else:
-                client = OpenAI(
-                    api_key=api_key,
-                    base_url="https://groq.com"
-                )
-                model_name = "llama-3.3-70b-versatile"
-            # -----------------------------------------------------------
-
-                
-            system_instruction = "Extract the HS Code, FOB Value, Country, and run the risk matrix analysis."
+        # Native Google Key Input (No credit card or payments needed)
+        gemini_key = st.text_input("Enter Free Gemini API Key", type="password", key="gemini_key_input")
+        if not gemini_key:
+            st.info("💡 Get a free key at ://google.com and paste it above.")
             
-            completion = client.beta.chat.completions.parse(
-                model=model_name,
-                messages=[{"role": "system", "content": system_instruction}, {"role": "user", "content": extracted_text}],
-                response_format=TradeContractSchema
-            )
-            return json.loads(completion.choices.message.content)
-
-        # Tool Interface layout
-        provider = st.selectbox("Choose Free AI Provider", ["Google Gemini (Free Tier)", "GroqCloud (Free Tier)"], key="trade_provider")
-        user_api_key = st.text_input(f"Enter {provider} API Key", type="password", key="trade_key")
+        uploaded_file = st.file_uploader("Upload Contract (PDF)", type=["pdf"], key="trade_pdf_uploader")
         
-        if not user_api_key:
-            st.info("💡 To run a test, generate a free token via Google AI Studio or GroqConsole and paste it above.")
-            
-        uploaded_file = st.file_uploader("Upload Commercial Trade Contract (PDF)", type=["pdf"], key="trade_uploader")
-        
-        if uploaded_file and user_api_key:
-            if st.button("Execute Live Document Analysis", key="trade_submit_btn"):
-                with st.spinner("Processing PDF bytes in memory and analyzing trade ledger mapping..."):
+        if uploaded_file and gemini_key:
+            if st.button("Execute Live Document Analysis", key="trade_run_btn"):
+                with st.spinner("Extracting and evaluating contract..."):
                     try:
-                        ai_output = extract_and_analyze_in_cloud(uploaded_file, user_api_key, provider)
+                        # In-memory text extraction from the PDF
+                        extracted_text = ""
+                        with pdfplumber.open(io.BytesIO(uploaded_file.getvalue())) as pdf:
+                            for page in pdf.pages:
+                                text = page.extract_text()
+                                if text:
+                                    extracted_text += text + "\n"
+
+                        # Clean Native Google Gemini Client Initialization
+                        client = genai.Client(api_key=gemini_key)
                         
+                        prompt = f"""
+                        Analyze this contract and return a JSON object with these EXACT keys:
+                        'extracted_hs_code' (string), 'contract_value_fob' (number), 'counterparty_country' (string), 
+                        'payment_terms' (string), 'risk_rubric_score' (number 0-100), 'rubric_compliance_notes' (list of strings).
+                        
+                        Contract text:
+                        {extracted_text}
+                        """
+
+                        # Direct native structured request
+                        response = client.models.generate_content(
+                            model='gemini-2.5-flash',
+                            contents=prompt,
+                            config=types.GenerateContentConfig(
+                                response_mime_type="application/json"
+                            ),
+                        )
+                        
+                        # Parse the native response safely
+                        ai_output = json.loads(response.text)
+                        
+                        # Render UI Layout Columns
                         col1, col2 = st.columns(2)
                         with col1:
-                            st.subheader("📊 Structured Extraction Output")
+                            st.subheader("📊 Extraction Data")
                             st.json(ai_output)
                             
                         with col2:
                             st.subheader("💼 General Ledger Postings")
-                            raw_code = ai_output["extracted_hs_code"]
+                            raw_code = ai_output.get("extracted_hs_code", "")
                             heading_key = raw_code.replace(".", "")[:4]
                             
                             if heading_key in HS_ROUTING_MATRIX:
                                 rule = HS_ROUTING_MATRIX[heading_key]
-                                fob = ai_output["contract_value_fob"]
+                                fob = ai_output.get("contract_value_fob", 0.0)
                                 duty = fob * rule["base_duty_rate"]
                                 
                                 st.metric("Asset Value (Debit)", f"${fob:,.2f}", delta=rule["debit_account"])
@@ -677,10 +667,10 @@ else:
                                 st.error(f"HS Heading {heading_key} not hardcoded in lookup dictionary.")
                                 
                         st.divider()
-                        st.subheader("⚠️ Automated Risk Matrix Score Card")
-                        st.metric("Risk Score", f"{ai_output['risk_rubric_score']} / 100")
-                        for note in ai_output['rubric_compliance_notes']:
+                        st.subheader("⚠️ Risk Matrix Score Card")
+                        st.metric("Risk Score", f"{ai_output.get('risk_rubric_score', 0)} / 100")
+                        for note in ai_output.get('rubric_compliance_notes', []):
                             st.markdown(f"- {note}")
+                            
                     except Exception as e:
-                        st.error(f"Processing Error: {str(e)}")
-
+                        st.error(f"Analysis failed: {str(e)}")
