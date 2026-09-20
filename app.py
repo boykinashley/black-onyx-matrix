@@ -82,6 +82,149 @@ if not st.session_state.authenticated:
                 st.error("Access Denied: Invalid security configuration strings or key signature.")
     st.stop()
 
+# app.py
+import streamlit as st
+import json
+
+# Import your separated logic layers from your GitHub repository
+from core_engine import run_trade_compliance_engine
+from ai_extractor import extract_pdf_variables_with_gemini
+
+# --- PAGE INITIALIZATION & STYLING ---
+st.set_page_config(page_title="Trade Finance Compliance Sandbox", layout="wide")
+st.title("🚢 AI Trade Finance & Risk Compliance Gateway")
+st.caption("A $0 Budget Sandbox proving the deterministic separation of AI Data Extraction vs. Mathematical Risk Rubrics.")
+
+# --- LAYER 4: DYNAMIC POLICY CONFIGURATION (ADMIN VIEW) ---
+st.sidebar.header("⚙️ Compliance Officer Dashboard")
+st.sidebar.write("Modify corporate risk thresholds and point thresholds dynamically without changing application source code.")
+
+# Load active thresholds from your local policy text file
+try:
+    with open("policy.json", "r") as f:
+        policy_config = json.load(f)
+except FileNotFoundError:
+    st.sidebar.error("Error: 'policy.json' file not found in your repository directory.")
+    st.stop()
+
+# Interactive Policy Threshold Sliders for the Admin Panel
+max_penalty_limit = st.sidebar.slider(
+    "Max Allowed Total Penalty Points", 
+    0, 100, policy_config.get("max_allowed_penalty_points", 30)
+)
+hs_risk_threshold = st.sidebar.slider(
+    "HS Code Risk Tier Threshold (Triggers Penalty if Greater)", 
+    1, 5, 2
+)
+
+# Sync admin dashboard changes back into the session configuration mapping
+policy_config["max_allowed_penalty_points"] = max_penalty_limit
+for rule in policy_config["rules"]:
+    if rule["metric"] == "hs_code_risk_tier":
+        rule["value"] = hs_risk_threshold
+
+with open("policy.json", "w") as f:
+    json.dump(policy_config, f, indent=2)
+
+st.sidebar.success("✅ Policy JSON synced successfully in active runtime memory.")
+
+# --- LAYER 1 & 2: SCENARIO SELECTOR & MOCK AI LAYER ---
+st.subheader("📋 Step 1: Document Processing & Variable Extraction")
+mode = st.radio("Choose Input Processing Mechanism:", ["Run Sandbox Scenario Profiles (Instant Demo)", "Upload Live Document PDF (Requires Free Gemini Key)"])
+
+extracted_ai_payload = None
+
+if mode == "Run Sandbox Scenario Profiles (Instant Demo)":
+    st.info("💡 Select an industry shipping manifest profile below to simulate the exact structured data payload an AI extraction agent pulls from a trade invoice.")
+    
+    # The interactive scenario dropdown menu
+    scenario = st.selectbox(
+        "Choose an Automated Trade Shipping Profile:",
+        [
+            "Select a profile...",
+            "Scenario A: Bulk Coffee Shipping (Thailand to USA) - Low Risk Profile",
+            "Scenario B: Electronics Hardware Freight (Shenzhen to Munich) - Moderate Risk Profile",
+            "Scenario C: Industrial Machinery Parts (Restricted Port Route) - Critical Block Profile"
+        ]
+    )
+    
+    # Mapping the selected profile index to its deterministic simulated payload dict
+    if scenario == "Scenario A: Bulk Coffee Shipping (Thailand to USA) - Low Risk Profile":
+        extracted_ai_payload = {
+            "is_sanctioned_port": False,
+            "has_inspection_certificate": True,
+            "hs_code_risk_tier": 1,
+            "vessel_compliance_score": 92
+        }
+    elif scenario == "Scenario B: Electronics Hardware Freight (Shenzhen to Munich) - Moderate Risk Profile":
+        extracted_ai_payload = {
+            "is_sanctioned_port": False,
+            "has_inspection_certificate": False, # Triggers a 40 point penalty
+            "hs_code_risk_tier": 3,              # Exceeds threshold, triggers 25 points
+            "vessel_compliance_score": 80
+        }
+    elif scenario == "Scenario C: Industrial Machinery Parts (Restricted Port Route) - Critical Block Profile":
+        extracted_ai_payload = {
+            "is_sanctioned_port": True,          # Triggers immediate Knockout rule
+            "has_inspection_certificate": True,
+            "hs_code_risk_tier": 2,
+            "vessel_compliance_score": 60
+        }
+
+else:
+    # Live Document Upload Route utilizing Free Cloud Processing
+    uploaded_file = st.file_uploader("Upload Trade Invoice, Bill of Lading, or Letter of Credit (PDF)", type=["pdf"])
+    if uploaded_file:
+        with st.spinner("🤖 Triggering Google Gemini 1.5 Flash to read unstructured text contents..."):
+            extracted_ai_payload = extract_pdf_variables_with_gemini(uploaded_file)
+
+# --- LAYER 3: CORE COMPLIANCE ENGINE RUNTIME ---
+if extracted_ai_payload:
+    col1, col2 = st.columns([1, 1])
+    
+    with col1:
+        st.write("### 🤖 Structured Data Extracted by AI Sub-Agent")
+        st.markdown("This payload represents the **untrusted text translation**. The AI layer ends here.")
+        st.json(extracted_ai_payload)
+        
+    with col2:
+        st.write("### ⚖️ Deterministic Mathematical Firewall Engine")
+        st.markdown("The core code engine loads the Pydantic schemas, aggregates math criteria, and enforces final verdicts.")
+        
+        # Pass the AI dictionary payload directly into the independent mathematical function
+        verdict = run_trade_compliance_engine(extracted_ai_payload)
+        
+        # Display the visual charts and metrics based on the pure python outcomes
+        if verdict["status"] == "SUCCESS":
+            if verdict["approved"]:
+                st.success("🎉 TRANSACTION APPROVED BY PORT GATEWAY")
+            else:
+                st.error("🛑 TRANSACTION DENIED BY RISK COMPLIANCE")
+                
+            st.metric(
+                label="Aggregated Matrix Penalty Score", 
+                value=f"{verdict['score']} Points", 
+                delta=f"Limit: {max_penalty_limit} Points", 
+                delta_color="inverse"
+            )
+            
+            # Use visual anchors to make log entries highly scannable
+            st.write("#### 📊 Rule Evaluation Audit Log Logs:")
+            for log_entry in verdict["logs"]:
+                if "APPROVED" in log_entry:
+                    st.info(f"✨ {log_entry}")
+                elif "REJECTED" in log_entry or "CRITICAL" in log_entry or "DENIAL" in log_entry:
+                    st.error(f"🛑 {log_entry}")
+                else:
+                    st.warning(f"⚠️ {log_entry}")
+                    
+        else:
+            # Displays if Pydantic catches structural data corruption coming from the AI agent response
+            st.error("🚨 CORRUPT AI TRANSACTION INJECTION DETECTED!")
+            st.write("The validation engine intercepted bad formatting before code math calculations could execute:")
+            for error_message in verdict["logs"]:
+                st.code(error_message)
+
 
 # ==============================================================================
 # 🏛️ CORE DASHBOARD CONTROL ROOM (THE MAIN UI PANEL)
