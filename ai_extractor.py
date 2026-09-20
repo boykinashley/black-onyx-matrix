@@ -1,24 +1,27 @@
 # ai_extractor.py
 import json
-import streamlit as st # Import streamlit to access secret variables
+import streamlit as st
 from google import genai
 from google.genai import types
 
-# Streamlit Cloud looks for a secret called "gemini_key" automatically
 GEMINI_API_KEY = st.secrets["gemini_key"]
 
 def extract_pdf_variables_with_gemini(uploaded_file) -> dict:
+    """
+    Connects to free Gemini 1.5 Flash to pull pre-shipment trade intent variables.
+    """
     try:
         client = genai.Client(api_key=GEMINI_API_KEY)
         file_bytes = uploaded_file.read()
         
         prompt = """
-        You are an AI data extraction sub-agent. Your ONLY job is to extract raw metrics 
-        from this document. Do not calculate scores. Do not apply policy. 
-        Extract the following fields exactly as numbers or booleans:
-        - credit_score (integer)
-        - tax_liens (integer)
-        - years_in_business (integer)
+        You are a Pre-Shipment Compliance Data Extraction sub-agent. 
+        Your ONLY job is to extract raw planned transaction metrics from this Pro Forma Invoice or Draft Letter of Credit. 
+        Do not calculate risk scores. Extract the following fields exactly as strings, numbers, or booleans:
+        - vendor_name (string)
+        - ein_number (string format: XX-XXXXXXX)
+        - nominated_vessel_imo (string format: IMOXXXXXXX)
+        - hs_code_risk_tier (integer 1 to 5 based on commodity type)
         """
         
         response = client.models.generate_content(
@@ -36,9 +39,9 @@ def extract_pdf_variables_with_gemini(uploaded_file) -> dict:
 
     except Exception as e:
         return {
-            "error": f"API Error: {str(e)}",
-            "credit_score": 550, 
-            "tax_liens": 1, 
-            "years_in_business": 1
+            "error": f"API Connection Bypass: {str(e)}",
+            "vendor_name": "RiskCorp Logistics Limited",
+            "ein_number": "99-9999999",
+            "nominated_vessel_imo": "IMO9999999",
+            "hs_code_risk_tier": 2
         }
-
