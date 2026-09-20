@@ -82,6 +82,117 @@ if not st.session_state.authenticated:
                 st.error("Access Denied: Invalid security configuration strings or key signature.")
     st.stop()
 # ==============================================================================
+# 🔏 MAIN DASHBOARD
+# ==============================================================================
+# app.py
+import streamlit as st
+import json
+
+from core_engine import process_escrow_sop_pipeline
+from ai_extractor import extract_variables_from_text_with_gemini
+
+st.set_page_config(page_title="Escrow Clearance Middleware", layout="wide")
+st.title("🛡️ Chronological Escrow Clearance Risk Middleware")
+st.caption("Active Transaction Verification Gateway - Mapping Compliance Operations [FinCEN / OFAC / ALTA Tracking Standards]")
+
+# --- LAYER 4: LIVE COMPLIANCE OFFICER OVERRIDE PANEL ---
+st.sidebar.header("⚙️ Escrow Guardrail Controls")
+try:
+    with open("policy.json", "r") as f:
+        policy = json.load(f)
+except FileNotFoundError:
+    st.error("Error: policy.json tracking structure layout missing.")
+    st.stop()
+
+max_penalty = st.sidebar.slider("Max Allowed Cumulative Penalty Ceiling", 0, 100, policy.get("max_allowed_penalty_points", 35))
+policy["max_allowed_penalty_points"] = max_penalty
+with open("policy.json", "w") as f:
+    json.dump(policy, f, indent=2)
+
+# --- WORKFLOW SELECTION SELECTOR ---
+st.subheader("📋 Step 1 & 2: Contract Content Acquisition")
+mode = st.radio("Choose Ingestion Input Processing Vector:", ["Use Sandbox Scenario Profiles (Instant Demo)", "Custom Ad-hoc Input Text Area (Live Screening Mode)"], horizontal=True)
+
+raw_document_text = ""
+
+if "Profiles" in mode:
+    profile = st.selectbox(
+        "Select a Target Pre-Shipment Escrow Transaction File Profile:",
+        [
+            "Select a folder profile...",
+            "Folder Profile 01: Standard Arabica Coffee Trade - Clear Compliance Pass",
+            "Folder Profile 02: Dual-Use Transit Freight - Suspicious Corporate Identity Track",
+            "Folder Profile 03: Heavy Sourcing Sacks Route - Logistics Variance Route Track"
+        ]
+    )
+    if "Coffee" in profile:
+        raw_document_text = "CONTRACT DRAFT: Global Coffee Traders Inc (EIN: 12-4455667) agrees to ship goods to American Roast Co. Vessel IMO1234567. Commodity Index: HTS Code 0901. Stated unit price value: $4.50."
+    elif "Dual-Use" in profile:
+        raw_document_text = "FREIGHT MANIFEST INTENT: Purchasing micro-components from Shenzhen Tech Parts Ltd (EIN: 00-0000000). Route tracks via transport carrier unit classification registration key number IMO1234567. Goods rating identifier: HTS Code 8542. Value rate: $85.00."
+    elif "Heavy Sourcing" in profile:
+        raw_document_text = "TRANSACTION PROPOSAL: Invoicing materials processing via RiskCorp Logistics Limited (EIN: 99-9999999). Fleet allocation assignment: cargo transport carrier vehicle IMO9999999. Processing rate value entry index: HTS Code 8479. Stated target deal pricing value: $120.00."
+
+else:
+    raw_document_text = st.text_area("⌨️ Interactive Ad-hoc Text Entry Window:", value="Draft: Escrow transfer request tracking seller Global Coffee Traders Inc (EIN: 12-4455667). Transiting on container liner ship IMO1234567. Value metric: HTS Code 0901.")
+
+# --- SYSTEM INTEGRITY EXECUTION PIPELINE ---
+if raw_document_text:
+    if st.button("🚀 Execute Chronological Escrow Audit"):
+        
+        # Trigger Layer 2 AI Data Extraction Layer
+        with st.spinner("🤖 Layer 2: Ingesting unstructured syntax strings into target JSON mapping vectors..."):
+            extracted_json = extract_variables_from_text_with_gemini(raw_document_text)
+            
+        col1, col2 = st.columns([1, 1.2])
+        
+        with col1:
+            st.write("### 🤖 Layer 2 Output: AI Token Parsing Payload")
+            st.json(extracted_json)
+            
+        with col2:
+            st.write("### ⚙️ Layer 3 Output: System Risk Clearance Trace")
+            
+            # Pass data into Layer 3 Mathematical Middleware Pipeline
+            verdict = process_escrow_sop_pipeline(extracted_json)
+            
+            if "FAILED" in verdict["status"]:
+                st.error("🚨 SOP PIPELINE HALTED AT INGESTION STAGE")
+                st.write(verdict["logs"])
+            else:
+                st.markdown("#### 🔄 Chronological Step-by-Step SOP Verification Pipeline Audit Trace:")
+                
+                # Render the step outcomes sequentially onto the interface panel display
+                for log in verdict["logs"]:
+                    if "SOP" in log:
+                        st.info(f"📋 {log}")
+                    elif "🛑" in log or "CRITICAL" in log:
+                        st.error(log)
+                    elif "⚠️" in log:
+                        st.warning(log)
+                    else:
+                        st.success(f"✨ {log}")
+                
+                st.markdown("---")
+                if verdict["approved"]:
+                    st.success("🏆 [SOP STEPS 1-4 CLEARED] FILE RELEASED TO DUAL-AUTH BANKING TERMINAL WIRE MECHANISMS [STEPS 5-7]")
+                else:
+                    st.error("🛑 [SOP STOP-GATE ENFORCED] DEPOSITS IMPLODED IN ESCROW SAFE CAVERNS. DISBURSEMENT PROHIBITED.")
+                    
+                st.metric("Aggregated Operational Penalty Score", f"{verdict['score']} Points", f"Max Allowed: {max_penalty} Points", delta_color="inverse")
+               
+                # app.py (Paste this right below the metric panel block in your app file)
+
+                if verdict["approved"]:
+                    st.markdown("---")
+                    st.subheader("🔓 Immediate Next Steps: Manual Settlement Processing Dashboard [SOP Steps 5-7]")
+                    
+                    st.checkbox("🟩 **SOP Step 5: Enforce Four-Eyes Verification.** Pass file matrix records package to senior manager platform keys [FFIEC Manual Standards].", value=True)
+                    st.checkbox("🟩 **SOP Step 6: Zero-Balancing Ledger Settlement.** Verify accounting tables calculate to precisely $0.00 balancing points [ALTA Compliance Core Rules].", value=False)
+                    st.checkbox("🟩 **SOP Step 7: Immutable Archival Record Locking.** Archive all cryptographic logging files for the mandatory 5-year federal lookup screen vault [Bank Secrecy Act Recordkeeping Rules].", value=False)
+
+
+
+# ==============================================================================
 # 🔏 INTERACTIVE DROPDOWN SCENARIOS
 # ==============================================================================
 
