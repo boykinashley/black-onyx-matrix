@@ -1,39 +1,52 @@
 {
-  "policy_name": "Cross-Border Trade Finance Gate",
-  "version": "2026.4",
+  "policy_name": "7-Step Escrow Clearance Blueprint",
+  "version": "2026.5",
   "rules": [
     {
-      "metric": "is_sanctioned_port",
+      "step": 2,
+      "metric": "ubo_verified",
+      "operator": "equals",
+      "value": false,
+      "penalty_points": 0,
+      "is_knockout": true,
+      "error_message": "STEP 2 BARRIER: UBO structure verification failed or falls below the 25% FinCEN ownership disclosure threshold [FinCEN 31 CFR Chapter X]."
+    },
+    {
+      "step": 2,
+      "metric": "ofac_sanctions_match",
       "operator": "equals",
       "value": true,
       "penalty_points": 0,
       "is_knockout": true,
-      "error_message": "CRITICAL RISK: Route involves a government-sanctioned port."
+      "error_message": "STEP 2 BARRIER: Global Sanctions Screen matched an entity or broker on the active OFAC SDN List [OFAC 31 CFR Chapter V]."
     },
     {
-      "metric": "is_entity_sanctioned",
+      "step": 3,
+      "metric": "vessel_dark_activity",
       "operator": "equals",
       "value": true,
-      "penalty_points": 0,
-      "is_knockout": true,
-      "error_message": "CRITICAL RISK: EIN or Corporate Name matched an active global enforcement or sanctions watch list."
-    },
-    {
-      "metric": "corporate_registry_status",
-      "operator": "not_equals",
-      "value": "ACTIVE",
-      "penalty_points": 0,
-      "is_knockout": true,
-      "error_message": "SHELL COMPANY RISK: EIN matched a shadow, shelf, dissolved, or inactive business registration status."
-    },
-    {
-      "metric": "hs_code_risk_tier",
-      "operator": "greater_than",
-      "value": 2,
-      "penalty_points": 25,
+      "penalty_points": 40,
       "is_knockout": false,
-      "error_message": "TARIFF RISK: HS commodity code belongs to a restricted trade ledger profile."
+      "error_message": "STEP 3 FLAG: Logistics deviation detected. Transit vessel engaged in dark activity gaps exceeding 12 hours."
+    },
+    {
+      "step": 3,
+      "metric": "market_value_deviation",
+      "operator": "greater_than",
+      "value": 20,
+      "penalty_points": 30,
+      "is_knockout": false,
+      "error_message": "STEP 3 FLAG: Financial variance detected. Unit contract pricing deviates >20% from global index averages, indicating potential CBP tariff fraud [19 U.S.C. § 1592]."
+    },
+    {
+      "step": 4,
+      "metric": "three_way_match_pass",
+      "operator": "equals",
+      "value": false,
+      "penalty_points": 0,
+      "is_knockout": true,
+      "error_message": "STEP 4 BARRIER: Pre-Disbursement Match failed. Commercial Invoice, Bill of Lading, and CBP Form 7501 contain weight or classification variances."
     }
   ],
-  "max_allowed_penalty_points": 30
+  "max_allowed_penalty_points": 35
 }
