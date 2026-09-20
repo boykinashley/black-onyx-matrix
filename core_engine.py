@@ -132,5 +132,3 @@ def run_trade_compliance_engine(raw_ai_payload: dict, policy_path="policy.json")
         "score": total_penalty,
         "logs": triggered_logs
     }
-
-
