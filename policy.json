@@ -1,1 +1,40 @@
+{
+  "policy_name": "Cross-Border Trade Finance Gate",
+  "version": "2026.3",
+  "rules": [
+    {
+      "metric": "is_sanctioned_port",
+      "operator": "equals",
+      "value": true,
+      "penalty_points": 0,
+      "is_knockout": true,
+      "error_message": "CRITICAL RISK: Route involves a government-sanctioned port of origin or destination."
+    },
+    {
+      "metric": "has_inspection_certificate",
+      "operator": "equals",
+      "value": false,
+      "penalty_points": 40,
+      "is_knockout": false,
+      "error_message": "REGULATORY FLAG: Missing mandatory third-party product quality/quantity inspection certificate."
+    },
+    {
+      "metric": "hs_code_risk_tier",
+      "operator": "greater_than",
+      "value": 2,
+      "penalty_points": 25,
+      "is_knockout": false,
+      "error_message": "TARIFF RISK: HS commodity code belongs to a high-tariff or restricted trade ledger profile."
+    },
+    {
+      "metric": "vessel_compliance_score",
+      "operator": "less_than",
+      "value": 75,
+      "penalty_points": 20,
+      "is_knockout": false,
+      "error_message": "LOGISTICS RISK: Maritime carrier network safety or tracking verification score is too low."
+    }
+  ],
+  "max_allowed_penalty_points": 30
+}
 
