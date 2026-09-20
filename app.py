@@ -149,26 +149,28 @@ if mode == "Run Sandbox Scenario Profiles (Instant Demo)":
     )
     
     # Mapping the selected profile index to its deterministic simulated payload dict
+    # app.py (Replace the profile dictionary section with this block)
+
     if scenario == "Scenario A: Bulk Coffee Shipping (Thailand to USA) - Low Risk Profile":
         extracted_ai_payload = {
+            "vendor_name": "Global Coffee Traders Inc",
+            "ein_number": "12-4455667", # Clean, active company registry lookup profile
             "is_sanctioned_port": False,
-            "has_inspection_certificate": True,
-            "hs_code_risk_tier": 1,
-            "vessel_compliance_score": 92
+            "hs_code_risk_tier": 1
         }
     elif scenario == "Scenario B: Electronics Hardware Freight (Shenzhen to Munich) - Moderate Risk Profile":
         extracted_ai_payload = {
+            "vendor_name": "Shenzhen Tech Parts",
+            "ein_number": "00-0000000", # Explicitly flags as a SHELF/INACTIVE company in our resolver
             "is_sanctioned_port": False,
-            "has_inspection_certificate": False, # Triggers a 40 point penalty
-            "hs_code_risk_tier": 3,              # Exceeds threshold, triggers 25 points
-            "vessel_compliance_score": 80
+            "hs_code_risk_tier": 3
         }
     elif scenario == "Scenario C: Industrial Machinery Parts (Restricted Port Route) - Critical Block Profile":
         extracted_ai_payload = {
-            "is_sanctioned_port": True,          # Triggers immediate Knockout rule
-            "has_inspection_certificate": True,
-            "hs_code_risk_tier": 2,
-            "vessel_compliance_score": 60
+            "vendor_name": "RiskCorp Logistics Limited", # Matches our sandbox sanctions list resolver
+            "ein_number": "99-9999999",
+            "is_sanctioned_port": True,
+            "hs_code_risk_tier": 2
         }
 
 else:
