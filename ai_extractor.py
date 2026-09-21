@@ -4,35 +4,72 @@ import streamlit as st
 from google import genai
 from google.genai import types
 
+# Access your free API key securely from Streamlit Cloud Secrets
 GEMINI_API_KEY = st.secrets["gemini_key"]
 
-def extract_variables_from_text_with_gemini(raw_contract_text: str) -> dict:
+# --- MASTER EXTRACTION PROMPT TEMPLATE ---
+# Centralizing the prompt ensures both text and PDF extractions output identical keys
+PROMPT_SCHEMA_INSTRUCTIONS = """
+You are a specialized Trade Finance Compliance Extraction Sub-Agent.
+Your ONLY job is to extract raw planned transaction metrics from the provided source document or text.
+Do NOT calculate risk scores. Do NOT apply corporate policy rules.
+
+Extract the following fields exactly as a JSON object with these precise keys:
+- buyer_name (string)
+- seller_name (string)
+- ein_number (string format: XX-XXXXXXX)
+- vessel_imo (string format: IMOXXXXXXX)
+- hs_code (string representation of the commodity classification)
+- contract_unit_price (float/number representing price per item unit)
+- invoice_value (float/number representing the total gross transaction value)
+
+Return ONLY valid JSON. Do not include any conversational text, markdown formatting, or code blocks.
+"""
+
+def extract_variables_from_pdf_with_gemini(uploaded_pdf_file) -> dict:
     """
-    Passes raw trade contract text directly to Gemini 1.5 Flash 
-    to extract fields matching the EscrowTransactionPayload schema.
+    Ingests a raw PDF file from a Streamlit file uploader,
+    passes it directly to Gemini 1.5 Flash, and extracts structured fields.
     """
     try:
         client = genai.Client(api_key=GEMINI_API_KEY)
         
-        prompt = """
-        You are a Pre-Shipment Compliance Data Extraction sub-agent. 
-        Your ONLY job is to extract raw planned transaction metrics from the provided contract text.
-        Do NOT calculate risk scores. Do NOT apply policy rules.
+        # 1. Read the uploaded PDF file straight into raw binary bytes
+        pdf_bytes = uploaded_pdf_file.read()
         
-        Extract the following fields exactly as a JSON object with these keys:
-        - buyer_name (string)
-        - seller_name (string)
-        - ein_number (string format: XX-XXXXXXX)
-        - vessel_imo (string format: IMOXXXXXXX or just the numbers)
-        - hs_code (string)
-        - contract_unit_price (float/number)
-        
-        Return ONLY valid JSON. No conversational text, markdown formatting, or code blocks.
-        """
-        
+        # 2. Package the binary bytes and send them alongside the extraction rules
         response = client.models.generate_content(
             model='gemini-1.5-flash',
-            contents=[prompt, f"CONTRACT TEXT TO PARSE:\n{raw_contract_text}"],
+            contents=[
+                types.Part.from_bytes(
+                    data=pdf_bytes,
+                    mime_type="application/pdf"
+                ),
+                PROMPT_SCHEMA_INSTRUCTIONS
+            ],
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                temperature=0.0 # Kept at absolute 0 to stop creative hallucinations
+            ),
+        )
+        return json.loads(response.text)
+
+    except Exception as e:
+        return {"error": f"PDF API Ingestion Bypass: {str(e)}", **get_fallback_mock_data()}
+
+
+def extract_variables_from_text_with_gemini(raw_contract_text: str) -> dict:
+    """
+    Ingests an ad-hoc unformatted text string or email draft from a text window,
+    passes it to Gemini 1.5 Flash, and extracts identical structured fields.
+    """
+    try:
+        client = genai.Client(api_key=GEMINI_API_KEY)
+        
+        # Pass the string payload directly to the model text channel
+        response = client.models.generate_content(
+            model='gemini-1.5-flash',
+            contents=[PROMPT_SCHEMA_INSTRUCTIONS, f"SOURCE TEXT UNSTRUCTURED DATA:\n{raw_contract_text}"],
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
                 temperature=0.0
@@ -41,12 +78,17 @@ def extract_variables_from_text_with_gemini(raw_contract_text: str) -> dict:
         return json.loads(response.text)
 
     except Exception as e:
-        # Fallback tracking profile matching your exact core_engine keys
-        return {
-            "buyer_name": "American Roast Co",
-            "seller_name": "Global Coffee Traders Inc",
-            "ein_number": "12-4455667",
-            "vessel_imo": "IMO1234567",
-            "hs_code": "0901",
-            "contract_unit_price": 4.50
-        }
+        return {"error": f"Text API Ingestion Bypass: {str(e)}", **get_fallback_mock_data()}
+
+
+def get_fallback_mock_data() -> dict:
+    """Helper fallback dictionary matching your exact core_engine keys if keys or networks drop."""
+    return {
+        "buyer_name": "American Roast Co",
+        "seller_name": "Global Coffee Traders Inc",
+        "ein_number": "12-4455667",
+        "vessel_imo": "IMO1234567",
+        "hs_code": "0901",
+        "contract_unit_price": 4.50,
+        "invoice_value": 500000.0
+    }
