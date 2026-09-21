@@ -200,7 +200,8 @@ if raw_document_text:
 import streamlit as st
 import json
 
-from core_engine import run_pre_shipment_compliance_engine
+from core_engine import process_escrow_sop_pipeline
+
 from ai_extractor import extract_variables_from_text_with_gemini
 
 st.set_page_config(page_title="Pre-Shipment Risk Middleware", layout="wide")
@@ -310,7 +311,7 @@ if raw_document_text:
 import streamlit as st
 import json
 
-from core_engine import run_pre_shipment_compliance_engine
+from core_engine import process_escrow_sop_pipeline
 from ai_extractor import extract_variables_from_text_with_gemini
 
 st.set_page_config(page_title="Pre-Shipment Risk Middleware", layout="wide")
