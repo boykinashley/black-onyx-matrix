@@ -13,6 +13,46 @@ import streamlit as st
 from pydantic import BaseModel, Field, ValidationError
 
 # ==============================================================================
+# 🏛️ REGULATORY SOURCE OF TRUTH REFERENCE LEAF
+# ==============================================================================
+# This dictionary serves as the immutable legal alignment registry for the middleware.
+# It tracks every core evaluation metric back to its originating authority.
+# ==============================================================================
+
+REGULATORY_MASTER_MAP = {
+    "ubo_verified": {
+        "sop_step": 2,
+        "governing_body": "FinCEN (Financial Crimes Enforcement Network)",
+        "legal_citation": "31 CFR Chapter X (Customer Due Diligence Rule)",
+        "scope_summary": "Mandates collection, identification, and verification of Ultimate Beneficial Owners holding >= 25% equity ownership."
+    },
+    "ofac_sanctions_match": {
+        "sop_step": 2,
+        "governing_body": "OFAC (Office of Foreign Assets Control)",
+        "legal_citation": "31 CFR Chapter V (Foreign Assets Control Regulations)",
+        "scope_summary": "Prohibits execution of trade financing or escrow disbursement to individuals, nations, or assets listed on the SDN Checklist."
+    },
+    "vessel_dark_activity": {
+        "sop_step": 3,
+        "governing_body": "OFAC / U.S. State Department / USCG",
+        "legal_citation": "2020 Sanctions Advisory on Deceptive Shipping Practices",
+        "scope_summary": "Identifies high-risk indicators including disabling or manipulating Automatic Identification System (AIS) global transponders."
+    },
+    "market_value_deviation": {
+        "sop_step": 3,
+        "governing_body": "U.S. Customs and Border Protection (CBP)",
+        "legal_citation": "19 U.S.C. § 1592 (Penalties for Fraud, Gross Negligence, and Negligence)",
+        "scope_summary": "Monitors trade value deviations and invoice padding designed to manipulate tariff entry summarizing ledgers."
+    },
+    "three_way_match_pass": {
+        "sop_step": 4,
+        "governing_body": "FFIEC (Federal Financial Institutions Examination Council)",
+        "legal_citation": "FFIEC BSA/AML Examination Manual Guidelines",
+        "scope_summary": "Forces absolute cryptographic correlation between the Commercial Invoice, Bill of Lading, and CBP Entry Summary Form 7501."
+    }
+}
+
+# ==============================================================================
 # ⚙️ SECTION 1: PYDANTIC STRUCTURAL VALIDATION HOOKS (SOP STEP 1)
 # ==============================================================================
 class EscrowTransactionPayload(BaseModel):
