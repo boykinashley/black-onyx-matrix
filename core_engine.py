@@ -144,6 +144,101 @@ def query_windward_maritime_api(vessel_imo: str) -> dict:
         return {"dark_activity_detected": True, "sanction_conflict": True}
     return {"dark_activity_detected": False, "sanction_conflict": False}
 
+# core_engine.py (Add this inside Section 2: REST API Handshakes)
+import requests
+import streamlit as st
+
+# --- AUTOMATED GOVERNMENT HTS REGISTRY CONDUIT ---
+def dynamic_government_hts_lookup(extracted_hs_code: str, contract_description: str) -> dict:
+    """
+    DYNAMIC API TRACK: Queries the official government HTS registry via a REST API call.
+    SANDBOX TRACK: Automatically falls back to local data if the API key is missing,
+    ensuring a functional prototype during stakeholder presentations.
+    """
+    # 1. Clean the extracted code format to match standard 4 or 6 digit headers
+    cleaned_code = extracted_hs_code.replace(".", "").strip()[:4] # e.g., "0901"
+    
+    # Authentic federal lookup routing endpoint (USITC Tariff API Hub)
+    gov_api_url = f"https://usitc.gov{cleaned_code}"
+    api_key = st.secrets.get("usitc_tariff_api_key", None)
+    
+    # If an API key exists in your Streamlit environment secrets, execute the live web fetch
+    if api_key:
+        try:
+            headers = {"Authorization": f"Bearer {api_key}", "Accept": "application/json"}
+            response = requests.get(gov_api_url, headers=headers, timeout=3.0)
+            if response.status_code == 200:
+                gov_payload = response.json()
+                
+                # Fetch the legal description filed in the official government registry
+                official_commodity_name = gov_payload.get("description", "Unknown Commodity")
+                
+                # --- AUTOMATED ALIGNMENT AUDIT ---
+                # Check if the contract's unstructured text matches the government's official classification
+                # We use lower-case tracking to handle basic structural matches
+                if official_commodity_name.lower()[:15] not in contract_description.lower():
+                    is_misaligned = True
+                else:
+                    is_misaligned = False
+                    
+                return {
+                    "source": "LIVE_GOVERNMENT_REST_API",
+                    "official_description": official_commodity_name,
+                    "base_duty_rate": float(gov_payload.get("general_rate", 0.025)),
+                    "description_mismatch_flag": is_misaligned
+                }
+        except Exception:
+            pass # Fall through to the sandbox fallback track if the network drops
+
+    # ==============================================================================
+    # 💎 DEMO PURPOSES ONLY: SANDBOX FALLBACK TRACK
+    # ==============================================================================
+    # This acts as your mock registry database until your live API scripts are finalized.
+    # It allows you to demonstrate the exact mismatch flag logic for zero dollars.
+    sandbox_registry_database = {
+        "0901": {
+            "official_description": "Coffee, Green / Not Roasted / Arabica Packaged Sacks",
+            "base_duty_rate": 0.045
+        },
+        "8802": {
+            "official_description": "Civil Aircraft / Private Aviation Hull and Airframes",
+            "base_duty_rate": 0.000
+        },
+        "8803": {
+            "official_description": "Aviation Parts / Underwing Aerospace Components",
+            "base_duty_rate": 0.025
+        }
+    }
+    
+    # Pull the matching government payload data matching the extracted token heading
+    if cleaned_code in sandbox_registry_database:
+        mock_gov_record = sandbox_registry_database[cleaned_code]
+        official_name = mock_gov_record["official_description"]
+        
+        # Simulate checking if what the AI found in the contract matches federal legal registers
+        # Example: if contract text says "Machinery" but HS Code maps to "Coffee", it triggers a flag
+        is_misaligned = True
+        if "coffee" in contract_description.lower() and "0901" in cleaned_code:
+            is_misaligned = False
+        elif "aircraft" in contract_description.lower() and "8802" in cleaned_code:
+            is_misaligned = False
+            
+        return {
+            "source": "SANDBOX_MOCK_REGISTRY_FALLBACK",
+            "official_description": official_name,
+            "base_duty_rate": mock_gov_record["base_duty_rate"],
+            "description_mismatch_flag": is_misaligned
+        }
+        
+    # Ultimate catch-all fallback token to prevent application crashes during ad-hoc user entries
+    return {
+        "source": "SANDBOX_MOCK_REGISTRY_FALLBACK",
+        "official_description": "Unmapped Custom Asset Classification",
+        "base_duty_rate": 0.020,
+        "description_mismatch_flag": False
+    }
+
+
 # ==============================================================================
 # 🧮 SECTION 3: THE COMPLIANCE MATRIX & FINANCIAL CREDIT UNDERWRITING
 # ==============================================================================
