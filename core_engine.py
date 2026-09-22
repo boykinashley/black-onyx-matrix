@@ -304,3 +304,188 @@ def process_escrow_sop_pipeline(raw_ai_payload: dict, policy_path="policy.json")
         "underwriting": underwriting_results,
         "logs": pipeline_audit_logs
     }
+
+# core_engine.py
+import json
+import operator
+
+# --- FIXED REFERENCE MATRIX LOOKUPS ---
+HS_ROUTING_MATRIX = {
+    "0901": {
+        "commodity_group": "Agricultural Resources",
+        "item_name": "Coffee / Tea Commodities",
+        "debit_account": "1410-Inventory-Raw-Agricultural-Materials",
+        "primary_agency": "FDA",
+        "compliance_pipeline": "FDA_PRIOR_NOTICE_AND_PHYTOSANITARY_RELEASE",
+        "base_duty_rate": 0.045
+    },
+    "8802": {
+        "commodity_group": "Aerospace Capital Goods",
+        "item_name": "Commercial Aircraft",
+        "debit_account": "1230-Fixed-Assets-Aircraft-Equipment",
+        "primary_agency": "FAA / BIS",
+        "compliance_pipeline": "FAA_AIRWORTHINESS_AND_EXPORT_CONTROL",
+        "base_duty_rate": 0.000
+    },
+    "8803": {
+        "commodity_group": "Aviation Parts",
+        "item_name": "Aerospace Components",
+        "debit_account": "1420-Inventory-Maintenance-Parts",
+        "primary_agency": "BIS",
+        "compliance_pipeline": "COMMERCE_CONTROL_LIST_DUAL_USE_SCREENING",
+        "base_duty_rate": 0.025
+    }
+}
+
+def calculate_risk_profile(data: dict, value: float) -> tuple:
+    """
+    Executes standard underwriting scoring mechanics across asset valuation profiles.
+    """
+    score = 0
+    covenants = []
+    
+    total_tariff_exposure = data.get("base_duty_rate", 0) + data.get("section_301_tariff", 0)
+    if total_tariff_exposure > 20.0:
+        score += 40
+        covenants.append("💰 **Duty Escrow Required:** High tariff exposure detected. Borrower must pre-fund duty cash buffer.")
+    elif total_tariff_exposure > 5.0:
+        score += 20
+    else:
+        score += 5
+
+    if data.get("has_pga_flag", False):
+        score += 35
+        agencies_str = ", ".join(data.get("pga_agencies", []))
+        covenants.append(f"⏳ **PGA Hold Mitigation:** Goods subject to {agencies_str} oversight. Verify pre-clearance filings.")
+    else:
+        score += 10
+
+    if data.get("liquidity_classification") == "High":
+        score += 5
+        base_advance = 0.85
+    elif data.get("liquidity_classification") == "Moderate":
+        score += 20
+        base_advance = 0.75
+    else:
+        score += 45
+        base_advance = 0.55
+        covenants.append("📉 **Alternative Recourse:** Low collateral liquidity. Require parent corporate guarantee.")
+
+    normalized_score = int((score / 120) * 100)
+    if normalized_score <= 35:
+        tier = "🟢 Low Risk Profile"
+        final_advance_rate = base_advance
+    elif normalized_score <= 65:
+        tier = "🟡 Moderate Risk Profile"
+        final_advance_rate = base_advance - 0.05
+    else:
+        tier = "🔴 High Risk Profile"
+        final_advance_rate = base_advance - 0.15
+
+    max_capital_outlay = value * final_advance_rate
+    return normalized_score, tier, final_advance_rate, max_capital_outlay, covenants
+
+def process_escrow_sop_pipeline(extracted_json: dict, policy_path="policy.json") -> dict:
+    """
+    Executes chronological validation steps against policy threshold variables.
+    """
+    try:
+        with open(policy_path, "r") as f:
+            policy = json.load(f)
+    except FileNotFoundError:
+        policy = {"max_allowed_penalty_points": 35, "rules": []}
+
+    score = extracted_json.get("risk_rubric_score", 10)
+    logs = ["SOP Step 1 Ingestion: Token components parsed securely."]
+    
+    if score > 45:
+        logs.append("🚨 ESCALATED RISK EXPOSURE DETECTED: Parameters breach baseline thresholds.")
+    else:
+        logs.append("✨ SECURITY BOUNDS NOMINAL: Transaction profiles align with protocol boundaries.")
+        
+    return {
+        "status": "SUCCESS",
+        "approved": score <= policy.get("max_allowed_penalty_points", 35),
+        "score": score,
+        "logs": logs
+    }
+# --- YOUR ORIGINAL Hardcoded Matrix Lookups Mapping Matrix ---
+HS_ROUTING_MATRIX = {
+    "0901": {
+        "commodity_group": "Agricultural Resources",
+        "item_name": "Coffee / Tea Commodities",
+        "debit_account": "1410-Inventory-Raw-Agricultural-Materials",
+        "primary_agency": "FDA",
+        "compliance_pipeline": "FDA_PRIOR_NOTICE_AND_Phytosanitary_RELEASE",
+        "base_duty_rate": 0.045
+    },
+    "8802": {
+        "commodity_group": "Aerospace Capital Goods",
+        "item_name": "Commercial Aircraft",
+        "debit_account": "1230-Fixed-Assets-Aircraft-Equipment",
+        "primary_agency": "FAA / BIS",
+        "compliance_pipeline": "FAA_AIRWORTHINESS_AND_EXPORT_CONTROL",
+        "base_duty_rate": 0.000
+    },
+    "8803": {
+        "commodity_group": "Aviation Parts",
+        "item_name": "Aerospace Components",
+        "debit_account": "1420-Inventory-Maintenance-Parts",
+        "primary_agency": "BIS",
+        "compliance_pipeline": "COMMERCE_CONTROL_LIST_DUAL_USE_SCREENING",
+        "base_duty_rate": 0.025
+    }
+}
+
+# --- YOUR ORIGINAL UNDERWRITING RISK ENGINE CALCULATOR ---
+def calculate_risk_profile(data, value):
+    score = 0
+    covenants = []
+    
+    # 1. Tariff & Margin Drag Evaluation
+    total_tariff_exposure = data["base_duty_rate"] + data["section_301_tariff"]
+    if total_tariff_exposure > 20.0:
+        score += 40
+        covenants.append("💰 **Duty Escrow Required:** High tariff exposure detected. Borrower must pre-fund duty cash buffer.")
+    elif total_tariff_exposure > 5.0:
+        score += 20
+    else:
+        score += 5
+
+    # 2. Operational / Regulatory Delay Evaluation (PGA Flagger)
+    if data["has_pga_flag"]:
+        score += 35
+        agencies_str = ", ".join(data["pga_agencies"])
+        covenants.append(f"⏳ **PGA Hold Mitigation:** Goods subject to {agencies_str} oversight. Verify pre-clearance filings.")
+    else:
+        score += 10
+
+    # 3. Collateral Marketability Evaluation
+    if data["liquidity_classification"] == "High":
+        score += 5
+        base_advance = 0.85
+    elif data["liquidity_classification"] == "Moderate":
+        score += 20
+        base_advance = 0.75
+    else:
+        score += 45
+        base_advance = 0.55
+        covenants.append("📉 **Alternative Recourse:** Low collateral liquidity. Require parent corporate guarantee.")
+
+    # 4. Final Risk Tier and Capital Limits Matrix
+    normalized_score = int((score / 120) * 100)
+    
+    if normalized_score <= 35:
+        tier = "🟢 Low Risk Profile"
+        final_advance_rate = base_advance
+    elif normalized_score <= 65:
+        tier = "🟡 Moderate Risk Profile"
+        final_advance_rate = base_advance - 0.05
+    else:
+        tier = "🔴 High Risk Profile"
+        final_advance_rate = base_advance - 0.15
+
+    max_capital_outlay = value * final_advance_rate
+
+    return normalized_score, tier, final_advance_rate, max_capital_outlay, covenants
+
