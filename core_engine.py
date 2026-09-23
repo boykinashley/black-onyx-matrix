@@ -1,5 +1,5 @@
 # ==============================================================================
-# 🏢 MIDDLEWARE LAYER 3: CORE RISK MONITORING & VALIDATION ENGINE
+# 🏢 MIDDLEWARE LAYER 3: CORE RISK MONITORING & VALIDATION ENGINE (SECTION 1)
 # ==============================================================================
 # This module acts as the isolated, deterministic compliance firewall. 
 # It handles Data Type Validation, External Government Registry REST Handshakes, 
@@ -15,10 +15,6 @@ from pydantic import BaseModel, Field, ValidationError
 # ==============================================================================
 # 🏛️ REGULATORY SOURCE OF TRUTH REFERENCE LEAF
 # ==============================================================================
-# This dictionary serves as the immutable legal alignment registry for the middleware.
-# It tracks every core evaluation metric back to its originating authority.
-# ==============================================================================
-
 REGULATORY_MASTER_MAP = {
     "ubo_verified": {
         "sop_step": 2,
@@ -46,7 +42,7 @@ REGULATORY_MASTER_MAP = {
     },
     "three_way_match_pass": {
         "sop_step": 4,
-        "governing_body": "FFIEC (Federal Financial Institutions Examination Council)",
+        "governing_body": "FFIEC / ALTA Framework Standards",
         "legal_citation": "FFIEC BSA/AML Examination Manual Guidelines",
         "scope_summary": "Forces absolute cryptographic correlation between the Commercial Invoice, Bill of Lading, and CBP Entry Summary Form 7501."
     }
@@ -60,13 +56,12 @@ class EscrowTransactionPayload(BaseModel):
     Enforces a strict type-checking firewall at the pipeline handoff point. 
     Intercepts and structural-checks raw string JSON payloads extracted by the AI.
     """
-    buyer_name: str = Field(..., description="Legal entity name of the importer/buyer")
-    seller_name: str = Field(..., description="Legal entity name of the exporter/seller")
-    ein_number: str = Field(..., description="9-digit corporate identifier format: XX-XXXXXXX")
-    vessel_imo: str = Field(..., description="7-digit maritime container ship registration tracking key")
-    hs_code: str = Field(..., description="Harmonized Tariff Schedule code extracted from document")
-    contract_unit_price: float = Field(..., description="Stated asset unit price inside the agreement text")
-    invoice_value: float = Field(..., description="Total contract gross financing volume value in USD")
+    buyer_lei: str = Field(..., description="Legal Entity Identifier of buying party")
+    seller_lei: str = Field(..., description="Legal Entity Identifier of selling party")
+    ein_number: str = Field(..., description="Corporate 9-digit tax identifier")
+    vessel_imo: str = Field(..., description="7-digit maritime registration tracking identifier")
+    hs_code: str = Field(..., description="Harmonized Tariff Schedule classification index")
+    value: float = Field(..., description="Stated asset unit price inside the agreement text")
 
 OPERATORS = {
     "equals": operator.eq,
@@ -74,113 +69,27 @@ OPERATORS = {
     "greater_than": operator.gt,
     "less_than": operator.lt
 }
-
 # ==============================================================================
-# 🌐 SECTION 2: REST API INFRASTRUCTURE HANDSHAKES (EXTERNAL DATA INGESTION)
+# 🌐 MIDDLEWARE LAYER 3: CORE RISK MONITORING & VALIDATION ENGINE (SECTION 2)
 # ==============================================================================
 
-def query_trade_gov_tariff_api(hs_code: str) -> dict:
-    """
-    Hits the official data.trade.gov FTA Tariff Rates REST API endpoint [15 U.S.C. § 4721].
-    Passes the AI-extracted HS Code as a validated query parameter.
-    """
-    api_url = "https://trade.gov"
-    api_key = st.secrets.get("trade_gov_key", "SANDBOX_MOCK_BYPASS")
-    headers = {"subscription-key": api_key, "Accept": "application/json"}
-    params = {"hs_code": hs_code}
-    
-    try:
-        response = requests.get(api_url, params=params, headers=headers, timeout=3.0)
-        if response.status_code == 200:
-            return response.json()
-    except requests.exceptions.RequestException:
-        pass
-        
-    # --- SANDBOX TEST DEFENSE RECONCILIATION (FALLBACK PROFILES) ---
-    if hs_code == "8542":
-        return {"base_duty": 5.0, "section_301_tariff": 25.0, "pga_flag": "BIS", "status": "DUAL_USE"}
-    elif hs_code == "8479":
-        return {"base_duty": 3.5, "section_301_tariff": 0.0, "pga_flag": "NONE", "status": "HEAVY_ASSET"}
-    return {"base_duty": 0.0, "section_301_tariff": 0.0, "pga_flag": "FD1", "status": "AGRI_CLEAN"}
-
-
-def query_trade_gov_sanctions_api(entity_name: str) -> bool:
-    """
-    Hits the official data.trade.gov Consolidated Screening List (CSL) REST API.
-    Cross-checks extracted buyer/seller entries against global watchlists (SDN, BIS, etc).
-    """
-    api_url = "https://trade.gov"
-    api_key = st.secrets.get("trade_gov_key", "SANDBOX_MOCK_BYPASS")
-    headers = {"subscription-key": api_key, "Accept": "application/json"}
-    params = {"q": entity_name}
-    
-    try:
-        response = requests.get(api_url, params=params, headers=headers, timeout=3.0)
-        if response.status_code == 200:
-            data = response.json()
-            return data.get("total", 0) > 0
-    except requests.exceptions.RequestException:
-        pass
-        
-    return "RiskCorp" in entity_name
-
-
-def query_windward_maritime_api(vessel_imo: str) -> dict:
-    """
-    Hits the Windward Maritime AI Due Diligence Screening REST API endpoint.
-    Identifies dark fleet behaviors and illicit transshipment gaps [ALTA Tracking Standards].
-    """
-    api_url = f"https://windward.ai{vessel_imo}/screening"
-    headers = {"X-API-Key": st.secrets.get("windward_key", "MOCK_KEY")}
-    
-    try:
-        response = requests.get(api_url, headers=headers, timeout=3.0)
-        if response.status_code == 200:
-            return response.json()
-    except Exception:
-        pass
-        
-    if vessel_imo == "IMO9999999":
-        return {"dark_activity_detected": True, "sanction_conflict": True}
-    return {"dark_activity_detected": False, "sanction_conflict": False}
-
-# core_engine.py (Add this inside Section 2: REST API Handshakes)
-import requests
-import streamlit as st
-
-# --- AUTOMATED GOVERNMENT HTS REGISTRY CONDUIT ---
 def dynamic_government_hts_lookup(extracted_hs_code: str, contract_description: str) -> dict:
     """
     DYNAMIC API TRACK: Queries the official government HTS registry via a REST API call.
-    SANDBOX TRACK: Automatically falls back to local data if the API key is missing,
-    ensuring a functional prototype during stakeholder presentations.
+    SANDBOX TRACK: Automatically falls back to local data if the API key is missing.
     """
-    # 1. Clean the extracted code format to match standard 4 or 6 digit headers
-    cleaned_code = extracted_hs_code.replace(".", "").strip()[:4] # e.g., "0901"
-    
-    # Authentic federal lookup routing endpoint (USITC Tariff API Hub)
+    cleaned_code = extracted_hs_code.replace(".", "").strip()[:4]
     gov_api_url = f"https://usitc.gov{cleaned_code}"
     api_key = st.secrets.get("usitc_tariff_api_key", None)
     
-    # If an API key exists in your Streamlit environment secrets, execute the live web fetch
     if api_key:
         try:
             headers = {"Authorization": f"Bearer {api_key}", "Accept": "application/json"}
             response = requests.get(gov_api_url, headers=headers, timeout=3.0)
             if response.status_code == 200:
                 gov_payload = response.json()
-                
-                # Fetch the legal description filed in the official government registry
                 official_commodity_name = gov_payload.get("description", "Unknown Commodity")
-                
-                # --- AUTOMATED ALIGNMENT AUDIT ---
-                # Check if the contract's unstructured text matches the government's official classification
-                # We use lower-case tracking to handle basic structural matches
-                if official_commodity_name.lower()[:15] not in contract_description.lower():
-                    is_misaligned = True
-                else:
-                    is_misaligned = False
-                    
+                is_misaligned = official_commodity_name.lower()[:15] not in contract_description.lower()
                 return {
                     "source": "LIVE_GOVERNMENT_REST_API",
                     "official_description": official_commodity_name,
@@ -188,37 +97,22 @@ def dynamic_government_hts_lookup(extracted_hs_code: str, contract_description: 
                     "description_mismatch_flag": is_misaligned
                 }
         except Exception:
-            pass # Fall through to the sandbox fallback track if the network drops
+            pass
 
-    # ==============================================================================
-    # 💎 DEMO PURPOSES ONLY: SANDBOX FALLBACK TRACK
-    # ==============================================================================
-    # This acts as your mock registry database until your live API scripts are finalized.
-    # It allows you to demonstrate the exact mismatch flag logic for zero dollars.
+    # --- SANDBOX TEST DEFENSE RECONCILIATION FOR DEMOS ---
     sandbox_registry_database = {
-        "0901": {
-            "official_description": "Coffee, Green / Not Roasted / Arabica Packaged Sacks",
-            "base_duty_rate": 0.045
-        },
-        "8802": {
-            "official_description": "Civil Aircraft / Private Aviation Hull and Airframes",
-            "base_duty_rate": 0.000
-        },
-        "8803": {
-            "official_description": "Aviation Parts / Underwing Aerospace Components",
-            "base_duty_rate": 0.025
-        }
+        "0901": {"official_description": "Coffee, Green / Not Roasted / Arabica Packaged Sacks", "base_duty_rate": 0.045},
+        "8542": {"official_description": "Electronic Integrated Circuits / Semiconductors", "base_duty_rate": 0.050},
+        "8802": {"official_description": "Civil Aircraft / Private Aviation Hull and Airframes", "base_duty_rate": 0.000}
     }
     
-    # Pull the matching government payload data matching the extracted token heading
     if cleaned_code in sandbox_registry_database:
         mock_gov_record = sandbox_registry_database[cleaned_code]
         official_name = mock_gov_record["official_description"]
-        
-        # Simulate checking if what the AI found in the contract matches federal legal registers
-        # Example: if contract text says "Machinery" but HS Code maps to "Coffee", it triggers a flag
         is_misaligned = True
         if "coffee" in contract_description.lower() and "0901" in cleaned_code:
+            is_misaligned = False
+        elif "circuit" in contract_description.lower() and "8542" in cleaned_code:
             is_misaligned = False
         elif "aircraft" in contract_description.lower() and "8802" in cleaned_code:
             is_misaligned = False
@@ -230,357 +124,155 @@ def dynamic_government_hts_lookup(extracted_hs_code: str, contract_description: 
             "description_mismatch_flag": is_misaligned
         }
         
-    # Ultimate catch-all fallback token to prevent application crashes during ad-hoc user entries
-    return {
-        "source": "SANDBOX_MOCK_REGISTRY_FALLBACK",
-        "official_description": "Unmapped Custom Asset Classification",
-        "base_duty_rate": 0.020,
-        "description_mismatch_flag": False
-    }
+    return {"source": "SANDBOX_MOCK_REGISTRY_FALLBACK", "official_description": "Unmapped Custom Asset Classification", "base_duty_rate": 0.020, "description_mismatch_flag": False}
 
+def query_trade_gov_sanctions_api(entity_name: str) -> bool:
+    """Hits the data.trade.gov Consolidated Screening List (CSL) REST API endpoint."""
+    api_url = "https://trade.gov"
+    api_key = st.secrets.get("trade_gov_key", "SANDBOX_MOCK_BYPASS")
+    headers = {"subscription-key": api_key, "Accept": "application/json"}
+    params = {"q": entity_name}
+    try:
+        response = requests.get(api_url, params=params, headers=headers, timeout=3.0)
+        if response.status_code == 200:
+            return response.json().get("total", 0) > 0
+    except requests.exceptions.RequestException:
+        pass
+    return "RiskCorp" in entity_name
 
+def query_windward_maritime_api(vessel_imo: str) -> dict:
+    """Hits the Windward Maritime AI Due Diligence Screening REST API endpoint."""
+    api_url = f"https://windward.ai{vessel_imo}/screening"
+    headers = {"X-API-Key": st.secrets.get("windward_key", "MOCK_KEY")}
+    try:
+        response = requests.get(api_url, headers=headers, timeout=3.0)
+        if response.status_code == 200: return response.json()
+    except Exception:
+        pass
+    return {"dark_activity_detected": "9999" in vessel_imo, "sanction_conflict": "9999" in vessel_imo}
 # ==============================================================================
-# 🧮 SECTION 3: THE COMPLIANCE MATRIX & FINANCIAL CREDIT UNDERWRITING
+# 🏢 MIDDLEWARE LAYER 3: CORE RISK MONITORING & VALIDATION ENGINE (SECTION 3)
 # ==============================================================================
 
-def execute_financial_underwriting(hs_code: str, val: float, tariff_data: dict, vessel_dark: bool) -> dict:
-    """
-    Pure credit calculation engine. Evaluates duty drag risks, operational delays, 
-    and asset liquidation speeds to structure lending parameters.
-    """
-    score = 0
-    covenants = []
+def calculate_direct_escrow_waterfall(gross_value: float, fees: dict, risk_reserve_rate: float) -> dict:
+    """[Scenario A] Calculates net seller proceeds after operational & HS risk holdbacks."""
+    logistics = fees.get("logistics_base_cost", 12000.00)
+    inspection = fees.get("inspection_fee_fixed", 2500.00)
+    escrow_fee = gross_value * fees.get("escrow_service_fee_rate", 0.005)
+    broker_comm = gross_value * fees.get("broker_commission_rate", 0.015)
+    risk_reserve = gross_value * risk_reserve_rate
     
-    # 1. Evaluate Duty Drag via trade.gov Data Payload
-    total_tariff_exposure = tariff_data.get("base_duty", 0.0) + tariff_data.get("section_301_tariff", 0.0)
-    if total_tariff_exposure > 20.0:
-        score += 40
-        covenants.append("💰 **Duty Escrow Required:** High tariff exposure detected. Pre-fund cash buffer.")
-    elif total_tariff_exposure > 5.0:
-        score += 20
-    else:
-        score += 5
-
-    # 2. Evaluate PGA Operational Holds
-    if tariff_data.get("pga_flag") != "NONE":
-        score += 35
-        covenants.append(f"⏳ **PGA Hold Mitigation:** Sourcing code subject to {tariff_data.get('pga_flag')} agency verification.")
-    else:
-        score += 10
-
-    # 3. Evaluate Asset Collateral Marketability
-    if hs_code == "0901":
-        score += 5
-        base_advance = 0.85
-    elif hs_code == "8542":
-        score += 20
-        base_advance = 0.75
-    else:
-        score += 45
-        base_advance = 0.55
-        covenants.append("📉 **Alternative Recourse:** Low collateral liquidity. Require parent corporate guarantee.")
-
-    # 4. Inject Telemetric Logistics Penalty from Windward API Response
-    if vessel_dark:
-        score += 20
-        covenants.append("🚢 **Logistics Premium Penalty:** Active Windward dark activity alert flag. Advance rate reduced.")
-
-    # 5. Map Normalized Output Bracket
-    normalized_score = int((score / 140) * 100)
-    if normalized_score <= 35:
-        tier = "🟢 Low Risk Underwriting Tier"
-        final_advance_rate = base_advance
-    elif normalized_score <= 65:
-        tier = "🟡 Moderate Risk Underwriting Tier"
-        final_advance_rate = base_advance - 0.05
-    else:
-        tier = "🔴 High Risk Underwriting Tier"
-        final_advance_rate = base_advance - 0.15
-
-    max_capital_outlay = val * final_advance_rate
-
+    total_deductions = logistics + inspection + escrow_fee + broker_comm + risk_reserve
     return {
-        "underwriting_score": normalized_score,
-        "risk_tier": tier,
-        "advance_rate": final_advance_rate,
-        "max_capital_outlay": max_capital_outlay,
-        "covenants": covenants
+        "gross_funding_capture": gross_value,
+        "logistics_costs": logistics,
+        "inspection_fees": inspection,
+        "escrow_service_fee": escrow_fee,
+        "broker_commissions": broker_comm,
+        "hs_risk_penalty_reserve": risk_reserve,
+        "total_deductions": total_deductions,
+        "net_seller_payout": max(0.0, gross_value - total_deductions)
     }
 
+def calculate_lender_advance_waterfall(gross_value: float, fees: dict, lender_params: dict, vol_discount: float) -> dict:
+    """[Scenario B] Calculates risk-adjusted advance amounts and interest yields."""
+    base_ltv = lender_params.get("base_advance_rate", 0.80)
+    final_advance_rate = max(0.0, base_ltv * (1.0 - vol_discount))
+    private_lender_advance = gross_value * final_advance_rate
+    
+    days = lender_params.get("estimated_transit_days", 60)
+    annual_rate = lender_params.get("annual_interest_rate", 0.12)
+    accrued_interest_reserve = private_lender_advance * (annual_rate * (days / 365.0))
+    
+    lender_facility_fee = private_lender_advance * lender_params.get("lender_facility_fee_rate", 0.01)
+    escrow_fee = gross_value * fees.get("escrow_service_fee_rate", 0.005)
+    logistics = fees.get("logistics_base_cost", 12000.00)
+    
+    total_lender_charges = private_lender_advance + accrued_interest_reserve + lender_facility_fee + escrow_fee + logistics
+    return {
+        "base_loan_to_value_rate": final_advance_rate,
+        "private_lender_advance_amount": private_lender_advance,
+        "accrued_interest_holdback_lock": accrued_interest_reserve,
+        "lender_facility_fees": lender_facility_fee,
+        "escrow_processing_fee": escrow_fee,
+        "logistics_transit_costs": logistics,
+        "net_seller_payout": max(0.0, gross_value - total_lender_charges)
+    }
 
-def process_escrow_sop_pipeline(raw_ai_payload: dict, policy_path="policy.json") -> dict:
-    """
-    Main Orchestrator Loop. Coordinates data pipeline handoffs chronologically 
-    according to standard operating procedures.
-    """
-    # [SOP STEP 1] Execute Structural Data Validation Firewall (Section 1)
+def process_escrow_sop_pipeline(raw_ai_payload: dict, matrix_selection: str, policy_path="policy.json") -> dict:
+    """Main Orchestrator. Coordinates metadata mapping and calculates the final waterfall values."""
+    empty_template = {"net_seller_payout": 0.0, "error": "Gateway Terminated"}
+    
     try:
         validated_data = EscrowTransactionPayload(**raw_ai_payload)
     except ValidationError as e:
         return {
-            "status": "STEP_1_FAILED",
-            "approved": False,
-            "logs": [f"SOP Step 1 Barrier: Document Format Corrupt - {err['loc']} - {err['msg']}" for err in e.errors()]
+            "status": "STEP_1_FAILED", "approved": False, "score": 0, "waterfall": empty_template,
+            "logs": [f"SOP Step 1 Failure: Structural Document Defect - {err['loc']} - {err['msg']}" for err in e.errors()]
         }
 
-    # Load policy compliance boundaries from Layer 4
-    with open(policy_path, "r") as f:
-        policy = json.load(f)
+    try:
+        with open(policy_path, "r") as f: client_policy = json.load(f)
+    except FileNotFoundError:
+        return {
+            "status": "CONFIG_ERROR", "approved": False, "score": 0, "waterfall": empty_template,
+            "logs": ["Critical Error: Dynamic policy.json configuration file missing from backend root."]
+        }
 
     total_penalty = 0
-    pipeline_audit_logs = ["SOP Step 1: Trade Contract parameters ingest-mapped successfully into memory."]
+    hs_vol_discount = 0.0
+    risk_reserve_rate = 0.0
+    pipeline_audit_logs = ["🛡️ SOP Step 1 Clearance: Core payload tokens validated via Pydantic."]
 
-    # [SOP STEP 2] Financial Ingestion & Sanctions Screen (Trade.gov API Section 2)
-    buyer_flagged = query_trade_gov_sanctions_api(validated_data.buyer_name)
-    seller_flagged = query_trade_gov_sanctions_api(validated_data.seller_name)
-    is_entity_sanctioned = buyer_flagged or seller_flagged
-    pipeline_audit_logs.append("SOP Step 2: Ingestion checkpoint completed. Querying global enforcement screening lists...")
-
-    # [SOP STEP 3] Mid-Transit Cargo & Routing Verification (Windward API Section 2)
+    buyer_flagged = query_trade_gov_sanctions_api(validated_data.buyer_lei)
+    seller_flagged = query_trade_gov_sanctions_api(validated_data.seller_lei)
     windward_data = query_windward_maritime_api(validated_data.vessel_imo)
-    pipeline_audit_logs.append("SOP Step 3: Logistics checkpoint completed. Synchronizing carrier AIS tracking streams...")
+    
+    contract_context_text = f"{validated_data.buyer_lei} buying from {validated_data.seller_lei} transiting on vessel {validated_data.vessel_imo}"
+    tariff_payload = dynamic_government_hts_lookup(validated_data.hs_code, contract_context_text)
 
-    # [SOP STEP 4] Pre-Disbursement Documentation Audit Check
-    three_way_match_pass = validated_data.ein_number != "00-0000000"
-    pipeline_audit_logs.append("SOP Step 4: Final 'Last-Look' document balance checks executed.")
-
-    # Call the Trade.gov Tariff Registry API to feed our underwriting variables
-    tariff_payload = query_trade_gov_tariff_api(validated_data.hs_code)
-
-    # Compile dynamic metadata state values
     runtime_state_matrix = {
         "ubo_verified": validated_data.ein_number != "00-0000000",
-        "ofac_sanctions_match": is_entity_sanctioned,
+        "ofac_sanctions_match": buyer_flagged or seller_flagged or validated_data.ein_number == "99-9999999",
         "vessel_dark_activity": windward_data["dark_activity_detected"],
-        "market_value_deviation": 25.0 if validated_data.vessel_imo == "IMO9999999" else 4.5,
-        "three_way_match_pass": three_way_match_pass
+        "hs_code_volatility_tier": 4 if "8542" in validated_data.hs_code or "8802" in validated_data.hs_code else 1,
+        "three_way_match_pass": validated_data.ein_number != "00-0000000" and not tariff_payload["description_mismatch_flag"]
     }
 
-    # Chronologically evaluate corporate compliance rules (Layer 4 Mapping)
-    sorted_rules = sorted(policy["rules"], key=lambda k: k["step"])
-    for rule in sorted_rules:
+    # Evaluate Rules
+    configured_metrics = []
+    for rule in client_policy.get("rules", []):
         metric = rule["metric"]
+        configured_metrics.append(metric)
         if metric in runtime_state_matrix:
-            current_val = runtime_state_matrix[metric]
-            rule_val = rule["value"]
-            op_func = OPERATORS[rule["operator"]]
-
-            if op_func(current_val, rule_val):
+            if operator.eq(runtime_state_matrix[metric], rule["value"]):
                 if rule.get("is_knockout", False):
                     return {
-                        "status": f"SOP_STEP_{rule['step']}_KNOCKOUT",
-                        "approved": False,
-                        "score": 100,
-                        "underwriting": {},
-                        "logs": pipeline_audit_logs + [f"🛑 CRITICAL SAFETY BARRIER: {rule['error_message']}", "STATUS: SETTLEMENT PROHIBITED (Zero Capital Allocation Enforced)"]
+                        "status": "KNOCKOUT_ENFORCED", "approved": False, "score": 100, "waterfall": empty_template,
+                        "logs": pipeline_audit_logs + [f"🛑 CRITICAL LEGAL BARRIER: {rule['error_message']}", "STATUS: SETTLEMENT PROHIBITED BY ENFORCEMENT"]
                     }
                 total_penalty += rule["penalty_points"]
-                pipeline_audit_logs.append(f"⚠️ {rule['error_message']}")
+                hs_vol_discount = rule.get("hs_volatility_discount", 0.0)
+                risk_reserve_rate = rule.get("risk_reserve_multiplier", 0.0)
+                pipeline_audit_logs.append(f"⚠️ Threshold Triggered: {rule['error_message']}")
 
-    compliance_approved = total_penalty <= policy["max_allowed_penalty_points"]
+    # Gap Sweep
+    for core_metric, legal_meta in REGULATORY_MASTER_MAP.items():
+        if core_metric not in configured_metrics:
+            pipeline_audit_logs.append(
+                f" Louie🔎 ASSESSOR GAP TRACKER: Policy config completely lacks an appraisal filter for '{core_metric}'. "
+                f"This exposes operations to unmonitored tracking under {legal_meta['governing_body']} [Ref: {legal_meta['legal_citation']}]."
+            )
 
-    # Trigger Credit Underwriting formulas if legal compliance clearance passes
-    underwriting_results = execute_financial_underwriting(
-        validated_data.hs_code,
-        validated_data.invoice_value,
-        tariff_payload,
-        runtime_state_matrix["vessel_dark_activity"]
-    )
-
-    if not compliance_approved:
-        pipeline_audit_logs.append(f"🛑 SOP Step 4 Halt: Combined risk points ({total_penalty} pts) exceed allowance limits.")
+    fees = client_policy.get("fixed_escrow_fees", {})
+    if "Direct Buyer-to-Seller" in matrix_selection:
+        waterfall_results = calculate_direct_escrow_waterfall(validated_data.value, fees, risk_reserve_rate)
     else:
-        pipeline_audit_logs.append("✨ SOP Step 4 Passed: Transaction metadata verified clear for banking wire routing pipelines.")
+        lender_params = client_policy.get("lender_facility_parameters", {})
+        waterfall_results = calculate_lender_advance_waterfall(validated_data.value, fees, lender_params, hs_vol_discount)
 
+    compliance_approved = total_penalty <= client_policy.get("max_allowed_penalty_points", 35)
     return {
-        "status": "SUCCESS",
-        "approved": compliance_approved,
-        "score": total_penalty,
-        "underwriting": underwriting_results,
-        "logs": pipeline_audit_logs
+        "status": "SUCCESS", "approved": compliance_approved, "score": total_penalty,
+        "waterfall": waterfall_results, "logs": pipeline_audit_logs
     }
-
-# core_engine.py
-import json
-import operator
-
-# --- FIXED REFERENCE MATRIX LOOKUPS ---
-HS_ROUTING_MATRIX = {
-    "0901": {
-        "commodity_group": "Agricultural Resources",
-        "item_name": "Coffee / Tea Commodities",
-        "debit_account": "1410-Inventory-Raw-Agricultural-Materials",
-        "primary_agency": "FDA",
-        "compliance_pipeline": "FDA_PRIOR_NOTICE_AND_PHYTOSANITARY_RELEASE",
-        "base_duty_rate": 0.045
-    },
-    "8802": {
-        "commodity_group": "Aerospace Capital Goods",
-        "item_name": "Commercial Aircraft",
-        "debit_account": "1230-Fixed-Assets-Aircraft-Equipment",
-        "primary_agency": "FAA / BIS",
-        "compliance_pipeline": "FAA_AIRWORTHINESS_AND_EXPORT_CONTROL",
-        "base_duty_rate": 0.000
-    },
-    "8803": {
-        "commodity_group": "Aviation Parts",
-        "item_name": "Aerospace Components",
-        "debit_account": "1420-Inventory-Maintenance-Parts",
-        "primary_agency": "BIS",
-        "compliance_pipeline": "COMMERCE_CONTROL_LIST_DUAL_USE_SCREENING",
-        "base_duty_rate": 0.025
-    }
-}
-
-def calculate_risk_profile(data: dict, value: float) -> tuple:
-    """
-    Executes standard underwriting scoring mechanics across asset valuation profiles.
-    """
-    score = 0
-    covenants = []
-    
-    total_tariff_exposure = data.get("base_duty_rate", 0) + data.get("section_301_tariff", 0)
-    if total_tariff_exposure > 20.0:
-        score += 40
-        covenants.append("💰 **Duty Escrow Required:** High tariff exposure detected. Borrower must pre-fund duty cash buffer.")
-    elif total_tariff_exposure > 5.0:
-        score += 20
-    else:
-        score += 5
-
-    if data.get("has_pga_flag", False):
-        score += 35
-        agencies_str = ", ".join(data.get("pga_agencies", []))
-        covenants.append(f"⏳ **PGA Hold Mitigation:** Goods subject to {agencies_str} oversight. Verify pre-clearance filings.")
-    else:
-        score += 10
-
-    if data.get("liquidity_classification") == "High":
-        score += 5
-        base_advance = 0.85
-    elif data.get("liquidity_classification") == "Moderate":
-        score += 20
-        base_advance = 0.75
-    else:
-        score += 45
-        base_advance = 0.55
-        covenants.append("📉 **Alternative Recourse:** Low collateral liquidity. Require parent corporate guarantee.")
-
-    normalized_score = int((score / 120) * 100)
-    if normalized_score <= 35:
-        tier = "🟢 Low Risk Profile"
-        final_advance_rate = base_advance
-    elif normalized_score <= 65:
-        tier = "🟡 Moderate Risk Profile"
-        final_advance_rate = base_advance - 0.05
-    else:
-        tier = "🔴 High Risk Profile"
-        final_advance_rate = base_advance - 0.15
-
-    max_capital_outlay = value * final_advance_rate
-    return normalized_score, tier, final_advance_rate, max_capital_outlay, covenants
-
-def process_escrow_sop_pipeline(extracted_json: dict, policy_path="policy.json") -> dict:
-    """
-    Executes chronological validation steps against policy threshold variables.
-    """
-    try:
-        with open(policy_path, "r") as f:
-            policy = json.load(f)
-    except FileNotFoundError:
-        policy = {"max_allowed_penalty_points": 35, "rules": []}
-
-    score = extracted_json.get("risk_rubric_score", 10)
-    logs = ["SOP Step 1 Ingestion: Token components parsed securely."]
-    
-    if score > 45:
-        logs.append("🚨 ESCALATED RISK EXPOSURE DETECTED: Parameters breach baseline thresholds.")
-    else:
-        logs.append("✨ SECURITY BOUNDS NOMINAL: Transaction profiles align with protocol boundaries.")
-        
-    return {
-        "status": "SUCCESS",
-        "approved": score <= policy.get("max_allowed_penalty_points", 35),
-        "score": score,
-        "logs": logs
-    }
-# --- YOUR ORIGINAL Hardcoded Matrix Lookups Mapping Matrix ---
-HS_ROUTING_MATRIX = {
-    "0901": {
-        "commodity_group": "Agricultural Resources",
-        "item_name": "Coffee / Tea Commodities",
-        "debit_account": "1410-Inventory-Raw-Agricultural-Materials",
-        "primary_agency": "FDA",
-        "compliance_pipeline": "FDA_PRIOR_NOTICE_AND_Phytosanitary_RELEASE",
-        "base_duty_rate": 0.045
-    },
-    "8802": {
-        "commodity_group": "Aerospace Capital Goods",
-        "item_name": "Commercial Aircraft",
-        "debit_account": "1230-Fixed-Assets-Aircraft-Equipment",
-        "primary_agency": "FAA / BIS",
-        "compliance_pipeline": "FAA_AIRWORTHINESS_AND_EXPORT_CONTROL",
-        "base_duty_rate": 0.000
-    },
-    "8803": {
-        "commodity_group": "Aviation Parts",
-        "item_name": "Aerospace Components",
-        "debit_account": "1420-Inventory-Maintenance-Parts",
-        "primary_agency": "BIS",
-        "compliance_pipeline": "COMMERCE_CONTROL_LIST_DUAL_USE_SCREENING",
-        "base_duty_rate": 0.025
-    }
-}
-
-# --- YOUR ORIGINAL UNDERWRITING RISK ENGINE CALCULATOR ---
-def calculate_risk_profile(data, value):
-    score = 0
-    covenants = []
-    
-    # 1. Tariff & Margin Drag Evaluation
-    total_tariff_exposure = data["base_duty_rate"] + data["section_301_tariff"]
-    if total_tariff_exposure > 20.0:
-        score += 40
-        covenants.append("💰 **Duty Escrow Required:** High tariff exposure detected. Borrower must pre-fund duty cash buffer.")
-    elif total_tariff_exposure > 5.0:
-        score += 20
-    else:
-        score += 5
-
-    # 2. Operational / Regulatory Delay Evaluation (PGA Flagger)
-    if data["has_pga_flag"]:
-        score += 35
-        agencies_str = ", ".join(data["pga_agencies"])
-        covenants.append(f"⏳ **PGA Hold Mitigation:** Goods subject to {agencies_str} oversight. Verify pre-clearance filings.")
-    else:
-        score += 10
-
-    # 3. Collateral Marketability Evaluation
-    if data["liquidity_classification"] == "High":
-        score += 5
-        base_advance = 0.85
-    elif data["liquidity_classification"] == "Moderate":
-        score += 20
-        base_advance = 0.75
-    else:
-        score += 45
-        base_advance = 0.55
-        covenants.append("📉 **Alternative Recourse:** Low collateral liquidity. Require parent corporate guarantee.")
-
-    # 4. Final Risk Tier and Capital Limits Matrix
-    normalized_score = int((score / 120) * 100)
-    
-    if normalized_score <= 35:
-        tier = "🟢 Low Risk Profile"
-        final_advance_rate = base_advance
-    elif normalized_score <= 65:
-        tier = "🟡 Moderate Risk Profile"
-        final_advance_rate = base_advance - 0.05
-    else:
-        tier = "🔴 High Risk Profile"
-        final_advance_rate = base_advance - 0.15
-
-    max_capital_outlay = value * final_advance_rate
-
-    return normalized_score, tier, final_advance_rate, max_capital_outlay, covenants
-
