@@ -384,14 +384,6 @@ if active_extracted_payload:
             w = verdict["waterfall"]
             if verdict["approved"]:
                 st.success("🎉 FIDUCIARY CLEARANCE GRANTED: ACCOUNT SAFE TO RECONCILE")
-                if "Scenario A" in matrix_selection:
-        with c2:
-            st.write("### 🧮 Cash Distribution Settlement Matrix")
-            w = verdict["waterfall"]
-            
-            if verdict["approved"]:
-                st.success("🎉 FIDUCIARY CLEARANCE GRANTED: ACCOUNT SAFE TO RECONCILE")
-                
                 # Render the distinct math outputs dynamically based on the selected financial chart path
                 if "Scenario A" in matrix_selection:
                     st.markdown("#### **Scenario A: Direct Seller Disbursement Splits**")
