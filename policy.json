@@ -1,73 +1,83 @@
 {
   "client_metadata": {
-    "client_id": "SECURE-ESCROW-CORP",
-    "fiduciary_tier": "Institutional"
+    "client_id": "BLACK-ONYX-FIDUCIARY-GATE",
+    "supported_matrices": [
+      "DIRECT_ESCROW", 
+      "LENDER_ADVANCE"
+    ]
   },
   
   "======================================================================": "",
-  "👉 SECTION 1: DYNAMIC ADAPTER MATRIX (HEADER TRANSFORMATION MAPPING)  ": "",
+  "👉 ADAPTER MATRIX: HEADER TRANSFORMATION TRANSLATION INDEX           ": "",
   "======================================================================": "",
   "client_header_transformation": {
-    "Beneficial Owner Vetting Check": "ubo_verified",
-    "OFAC Watchlist Verification": "ofac_sanctions_match",
-    "AIS Logistics Transshipment Flag": "vessel_dark_activity",
-    "Invoice Valuation Padding Index": "market_value_deviation",
-    "3-Way Document Balance Clearance": "three_way_match_pass"
+    "Ultimate Beneficial Owner Status Check": "ubo_verified",
+    "Global Watchlist Screening Matrix": "ofac_sanctions_match",
+    "Logistics AIS Transponder Flag": "vessel_dark_activity",
+    "HTS Code Volatility Risk Bracket": "hs_code_volatility_tier",
+    "Three-Way Customs Ledger Reconciliation": "three_way_match_pass"
   },
 
   "======================================================================": "",
-  "👉 SECTION 2: MANDATORY GOVERNING AGENCY GATES (UNBREAKABLE REGULATORY LAW)": "",
+  "👉 TRANSACTION CHARGES & FIXED OPERATIONAL ESCROW FEES               ": "",
   "======================================================================": "",
-  "governing_agency_gates": [
+  "fixed_escrow_fees": {
+    "escrow_service_fee_rate": 0.005,
+    "inspection_fee_fixed": 2500.00,
+    "logistics_base_cost": 12000.00,
+    "broker_commission_rate": 0.015
+  },
+
+  "======================================================================": "",
+  "👉 PRIVATE LENDER CAPITAL FACILITY UNDERWRITING METRICS              ": "",
+  "======================================================================": "",
+  "lender_facility_parameters": {
+    "base_advance_rate": 0.80,
+    "annual_interest_rate": 0.12,
+    "estimated_transit_days": 60,
+    "lender_facility_fee_rate": 0.01
+  },
+
+  "======================================================================": "",
+  "👉 CHRONOLOGICAL COMPLIANCE & RISK STOP-GATE LEDGER                 ": "",
+  "======================================================================": "",
+  "rules": [
     {
       "step": 2,
-      "core_metric": "ofac_sanctions_match",
+      "metric": "ofac_sanctions_match",
       "operator": "equals",
       "value": true,
       "is_knockout": true,
-      "error_message": "CRITICAL REGULATORY STOP: Counterparty matched active OFAC SDN Enforcement Ledger [OFAC 31 CFR Chapter V]."
+      "error_message": "GOVERNING GATE EXCLUSION: Counterparty matched active international sanction watch list [OFAC 31 CFR Chapter V]."
     },
     {
       "step": 2,
-      "core_metric": "ubo_verified",
+      "metric": "ubo_verified",
       "operator": "equals",
       "value": false,
       "is_knockout": true,
-      "error_message": "CRITICAL REGULATORY STOP: FinCEN Beneficial Ownership disclosure criteria failed to resolve [FinCEN 31 CFR Chapter X]."
-    }
-  ],
-
-  "======================================================================": "",
-  "👉 SECTION 3: CUSTOM ESCROW AGENT RISK POLICY GATES (CLIENT APPLIED MATH)": "",
-  "======================================================================": "",
-  "client_custom_gates": [
-    {
-      "step": 3,
-      "core_metric": "vessel_dark_activity",
-      "operator": "equals",
-      "value": true,
-      "penalty_points": 40,
-      "is_knockout": false,
-      "error_message": "CLIENT MARGIN WARNING: Vessel engaged in unflagged dark activity gaps exceeding 12 hours."
+      "error_message": "GOVERNING GATE EXCLUSION: FinCEN Beneficial Ownership corporate disclosure failed [FinCEN 31 CFR Chapter X]."
     },
     {
       "step": 3,
-      "core_metric": "market_value_deviation",
+      "metric": "hs_code_volatility_tier",
       "operator": "greater_than",
-      "value": 20,
-      "penalty_points": 30,
+      "value": 2,
+      "penalty_points": 25,
       "is_knockout": false,
-      "error_message": "CLIENT MARGIN WARNING: Contract valuation pricing tracks outside historical asset index benchmarks [19 U.S.C. § 1592]."
+      "hs_volatility_discount": 0.05,
+      "risk_reserve_multiplier": 0.04,
+      "error_message": "POLICY THRESHOLD VIOLATION: HS Code flags volatile asset profile. Enforcing risk reserve penalty holdbacks."
     },
     {
       "step": 4,
-      "core_metric": "three_way_match_pass",
+      "metric": "three_way_match_pass",
       "operator": "equals",
       "value": false,
       "penalty_points": 0,
       "is_knockout": true,
-      "error_message": "CLIENT LIQUIDITY STOP: Commercial Invoice, B/L, and Entry Summary fail to clear internal 3-Way reconciliation."
+      "error_message": "CLIENT LIQUIDITY LOCK: Commercial Invoice, Bill of Lading, and Customs Form 7501 contain irreconcilable data imbalances."
     }
   ],
-  "max_allowed_policy_penalty_points": 35
+  "max_allowed_penalty_points": 35
 }
