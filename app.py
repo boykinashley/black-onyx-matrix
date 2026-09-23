@@ -371,14 +371,15 @@ if active_extracted_payload:
         c1, c2 = st.columns(2)
         with c1:
             st.write("### 🤖 Compliance Pipeline Ingestion Logs")
+
+            verdict = process_escrow_sop_pipeline(active_extracted_payload, matrix_selection if 'matrix_selection' in locals() else "Scenario A: Direct Buyer-to-Seller Matrix")
             
-            # Pipe compiled payload dictionary variables directly into Layer 3
-            verdict = process_escrow_sop_pipeline(active_extracted_payload, matrix_selection)
             for log in verdict["logs"]:
                 if "SOP" in log or "ASSESSOR" in log: st.info(log)
                 elif "🛑" in log or "CRITICAL" in log: st.error(log)
                 elif "⚠️" in log: st.warning(log)
                 else: st.success(log)
+
         with c2:
             st.write("### 🧮 Cash Distribution Settlement Matrix")
             w = verdict["waterfall"]
