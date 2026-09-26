@@ -23,12 +23,14 @@ Your ONLY job is to extract raw planned transaction metrics from the provided co
 Do NOT calculate risk scores. Do NOT apply corporate underwriting or policy rules.
 
 Extract the following variables exactly as a JSON object with these precise structural keys:
-- buyer_lei (string, extract the Legal Entity Identifier or legal importer name)
-- seller_lei (string, extract the Legal Entity Identifier or legal exporter name)
+- trade_type (string, must be 'INTERNATIONAL' or 'DOMESTIC' based on keywords found)
+- buyer_identifier (string, extract the Legal Entity Identifier, legal importer name, or corporate registrant)
+- seller_identifier (string, extract the Legal Entity Identifier, legal exporter name, or corporate registrant)
+- buyer_domain (string, extract the main corporate email domain of the buyer party, e.g., corporate.com)
 - ein_number (string format: XX-XXXXXXX or tax ID listed)
-- vessel_imo (string format: IMOXXXXXXX or just the numbers)
-- hs_code (string representation of the commodity classification, e.g., 0901.11 or 8542.40)
-- value (float/number representing the total gross escrow contract value)
+- logistic_tracking_id (string format: IMOXXXXXXX or trucking BOL index)
+- commodity_code (string representation of the commodity classification, e.g., 0901.11 or 8542.40)
+- gross_transaction_value (float/number representing the total gross escrow contract value)
 
 Return ONLY valid JSON. Do not include any conversational text, markdown formatting, or code blocks.
 """
@@ -57,12 +59,14 @@ def extract_variables_from_text_with_gemini(raw_contract_text: str) -> dict:
         # Automatic fallback redirect if keys are missing, ensuring your sandbox never crashes live
         return {
             "error": f"Text Extraction API Bypass: {str(e)}",
-            "buyer_lei": "LEI-US-550912834",
-            "seller_lei": "LEI-CO-110293847",
+            "trade_type": "INTERNATIONAL",
+            "buyer_identifier": "LEI-US-550912834",
+            "seller_identifier": "LEI-CO-110293847",
+            "buyer_domain": "globalcoffeetraders.com",
             "ein_number": "12-4455667",
-            "vessel_imo": "IMO1234567" if "IMO1234567" in raw_contract_text else "IMO9999999",
-            "hs_code": "0901.11" if "0901" in raw_contract_text else "8542.40",
-            "value": 1250000.00 if "1250000" in raw_contract_text else 500000.00
+            "logistic_tracking_id": "IMO1234567",
+            "commodity_code": "0901.11",
+            "gross_transaction_value": 1250000.00
         }
 # ==============================================================================
 # 🤖 MIDDLEWARE LAYER 2: AUTOMATED INGESTION & VARIABLE EXTRACTION (SECTION 2)
@@ -70,16 +74,18 @@ def extract_variables_from_text_with_gemini(raw_contract_text: str) -> dict:
 
 import io
 import pypdf
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
-# --- LOCAL VALIDATION CONTRACT FOR COMPONENT SYNC ---
+# --- LOCAL VALIDATION CONTRACT FOR LAYERED EXTRACTIONS ---
 class TradeContractSchema(BaseModel):
-    extracted_hs_code: str
-    contract_value_fob: float
-    counterparty_country: str
-    payment_terms: str
-    risk_rubric_score: int
-    rubric_compliance_notes: list[str]
+    trade_type: str = Field(..., description="Must be 'DOMESTIC' or 'INTERNATIONAL'")
+    buyer_identifier: str = Field(..., description="Buyer corporate identity LEI or registrant name")
+    seller_identifier: str = Field(..., description="Seller corporate identity LEI or registrant name")
+    buyer_domain: str = Field(..., description="Corporate website domain link of the buyer party")
+    ein_number: str = Field(..., description="9-digit corporate identifier code")
+    logistic_tracking_id: str = Field(..., description="Vessel IMO identifier or trucking carrier bill of lading number")
+    commodity_code: str = Field(..., description="HTS commodity classification index heading")
+    gross_transaction_value: float = Field(..., description="Total contract invoice volume rate")
 
 def extract_variables_from_pdf_binary(uploaded_file, gemini_key: str) -> dict:
     """
@@ -99,7 +105,7 @@ def extract_variables_from_pdf_binary(uploaded_file, gemini_key: str) -> dict:
             return {"error": "SYSTEM CRITICAL: Terminal read failed. PDF text layers blank."}
 
         client = genai.Client(api_key=gemini_key)
-        prompt = f"Extract target HS Code, FOB asset value, country, payment structural bounds, and apply the strict risk rubric schema matrix:\n{extracted_text}"
+        prompt = f"Extract target parameters and apply the strict trade finance schema matrix:\n{extracted_text}"
         
         response = client.models.generate_content(
             model='gemini-1.5-flash',
