@@ -1,10 +1,12 @@
-supabase
-pypdf
+pydantic
 requests
-numpy
 pandas
+numpy
+pypdf
 google-genai
+supabase
 streamlit
+
 
 
 
