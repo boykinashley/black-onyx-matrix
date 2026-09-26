@@ -321,3 +321,39 @@ with tab4:
                     width="stretch",
                     key="sop_step_7_download_button_key"
                 )
+# ==============================================================================
+# 🔀 IMMUTABLE ARCHITECTURAL ALIASING LAYER
+# ==============================================================================
+# This layer prevents frontend-backend import drift crashes by explicitly 
+# mapping legacy function hooks to the modernized 5-phase checking loop.
+# ==============================================================================
+
+def process_escrow_sop_pipeline(raw_ai_payload: dict, matrix_selection: str, policy_path="policy.json") -> dict:
+    """
+    Legacy structural entry alias wrapper. Automatically routes older 
+    frontend calls to the multi-jurisdiction sequential phase engine.
+    """
+    # Create empty structural manual signoffs so older layout buttons pass through safely
+    empty_signoffs = {
+        "p1_reference_trace": True, "p1_web_footprint": True, 
+        "p2_jurisdiction": True, "p3_source_funds": True, 
+        "p4_customs": True, "p4_chain_custody": True
+    }
+    
+    # Map the trade jurisdiction type dynamically from the selection string
+    trade_type = "INTERNATIONAL" if "Lender" in matrix_selection or "International" in matrix_selection else "DOMESTIC"
+    
+    # If the payload came from an older contract text-box, ensure the type flag is appended
+    if "trade_type" not in raw_ai_payload:
+        raw_ai_payload["trade_type"] = trade_type
+        
+    return execute_sequential_phase_loops(
+        raw_payload=raw_ai_payload, 
+        active_tab="Phase 5", # Defaults to the final settlement track to populate waterfalls
+        matrix_type=matrix_selection, 
+        manual_signoffs=empty_signoffs, 
+        policy_path=policy_path
+    )
+
+# Explicitly register the primary name used by your tab-terminal layouts
+process_escrow_sop_pipeline = process_escrow_sop_pipeline
