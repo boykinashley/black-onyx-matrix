@@ -1,8 +1,8 @@
 # ==============================================================================
 # 💎 LAYER 1 VIEW ORCHESTRATOR: PORTAL CONTROL ROOM (SECTION 1 OF 3)
 # ==============================================================================
-# This module drives the user interface. It manages state memory, catches 
-# webhook triggers, and pipes data payloads into the Layer 3 core math engine.
+# This module drives the user interface. It manages state memory, handles your
+# standalone financier credentials gate, and routes data payloads down to Layer 3.
 # ==============================================================================
 
 import streamlit as st
@@ -10,16 +10,17 @@ import pandas as pd
 import json
 import uuid
 import time
+import asyncio
 
-# Absolute path mapping imports from your independent repository modules
-from core_engine import execute_sequential_phase_loops, REGULATORY_MASTER_MAP
-
+# Synchronized middleware layer imports targeting your active Layer 3 core files
+from core_engine import process_escrow_sop_pipeline, REGULATORY_MASTER_MAP
+from ai_extractor import extract_variables_from_text_with_gemini
 
 # Global Baseline HS Rule Book Layer Reference Configuration Mapping
 HS_RULEBOOK = {
     "0901.11": {"commodity": "Coffee, Green / Not Roasted", "max_variance_pct": 2.0},
     "8542.40": {"commodity": "Electronic Integrated Circuits / Semiconductors", "max_variance_pct": 1.5},
-    "8802.40": {"commodity": "Civil Aircraft / Private Aviation Hull", "max_variance_pct": 0.5}
+    "8479.10": {"commodity": "Industrial Machinery / Heavy Mechanical Assets", "max_variance_pct": 1.0}
 }
 
 # --- PLATFORM STATE MACHINE & IN-APP STORAGE INITIALIZATION ---
@@ -72,7 +73,7 @@ if not st.session_state.authenticated:
         
     # Standard Manual Login Form Layout
     with st.form("lender_auth_gate"):
-        username = st.text_input("Financier Login Identifier:", value="lender@blackonyx.com")
+        username = st.text_input("Fiduciary Agent Identifier:", value="lender@blackonyx.com")
         password = st.text_input("Security Encryption Key:", value="blackonyx2026", type="password")
         submit_login = st.form_submit_button("Verify Identity & Unlock Middleware Core", use_container_width=True)
         
@@ -92,7 +93,7 @@ if not st.session_state.authenticated:
 # sidebar profile inputs, and maps the active ledger telemetry tracking data.
 # ==============================================================================
 
-# Force clean, enterprise page state architecture
+# Force clean, enterprise layout styling rules after passing the security gateway
 st.set_page_config(page_title="Black Onyx Matrix — Control Room", layout="wide", initial_sidebar_state="expanded")
 
 # --- SIDEBAR IDENTITY BRANDING & COMPLIANCE MATRIX ADJUSTER ---
@@ -104,7 +105,7 @@ with st.sidebar:
     st.success("Connected: Active Node Session")
     st.info("Role: Primary Funding Referee")
     
-    if st.button("🔒 Log Out of Terminal", use_container_width=True):
+    if st.button("🔒 Secure Logout / Lock Terminal", use_container_width=True):
         st.session_state.authenticated = False
         st.rerun()
         
@@ -128,7 +129,6 @@ with st.sidebar:
     except FileNotFoundError:
         policy_config = {"max_allowed_penalty_points": 35}
         
-    # This single slider handles your active risk ceiling threshold with a strict explicit key tracking system
     max_penalty_limit = st.sidebar.slider(
         "Maximum Risk Point Threshold", 
         0, 100, 
@@ -138,11 +138,10 @@ with st.sidebar:
     policy_config["max_allowed_penalty_points"] = max_penalty_limit
     with open("policy.json", "w") as f: json.dump(policy_config, f, indent=2)
 
-# --- 1. CORE DASHBOARD CONTROL ROOM (THE MAIN UI PANEL) ---
+# --- CORE DASHBOARD REAL-TIME TELEMETRY CHARTS ---
 st.title("💎 Core Dashboard Control Room")
 st.write("Alternative Credit & Escrow Funds Transaction Telemetry Terminal.")
 
-# --- 2. CROSS-BORDER RISK METRIC DISPLAYS ---
 st.subheader("📊 Cross-Border Risk Analytics & Counterparty Exposure")
 col_r1, col_r2, col_r3, col_r4 = st.columns(4)
 with col_r1: st.metric(label="Global Active Capital Exposure", value=r"\$43.25M USD", delta=r"+\$2.1M This Week")
@@ -152,7 +151,7 @@ with col_r4: st.metric(label="Active Escrow Violation Liquidity", value=r"\$12.5
 
 st.divider()
 
-# --- 3. ACTIVE SYSTEM TELEMETRY DATA GRID ---
+# --- THE ACTIVE TELEMETRY DATA GRID RECONCILER ---
 st.subheader("🚢 Active Trade Flow Pipeline & Ledger Records")
 df_ledger = pd.DataFrame(st.session_state.trade_ledger)
 
@@ -172,7 +171,7 @@ st.dataframe(
     hide_index=True
 )
 
-# --- 4. SECTION 2: THE INGESTION LAYER & ZERO-LOGIN DROP BOX GENERATOR ---
+# --- SECTION 2: THE INGESTION LAYER & ZERO-LOGIN DROP BOX GENERATOR ---
 st.divider()
 st.subheader("📩 Step 2: Automated Seller Ingestion Workflow")
 st.write("Generate a secure, single-use workspace URL token to allow external counterparties to upload verification files.")
@@ -186,7 +185,6 @@ with col_gen_1:
         options=[t["trade_id"] for t in st.session_state.trade_ledger if "RELEASED" not in t["escrow_status"]],
         key="dropbox_target_selector_key"
     )
-    
     if st.button("⚡ Generate One-Time Secure Token Link", use_container_width=True):
         unique_secure_token = f"TOKEN-{str(uuid.uuid4())[:8].upper()}"
         st.session_state.active_drop_token = unique_secure_token
@@ -199,51 +197,40 @@ if "active_drop_token" in st.session_state and not st.session_state.token_used:
         st.markdown("#### **Generated Secure URL Manifest**")
         simulated_secure_url = f"https://streamlit.io{st.session_state.active_drop_token}"
         st.info(f"📧 **Emailed Target Link Payload to Seller:**\n\n`{simulated_secure_url}`")
-        
         st.write("---")
         st.caption("📱 Presentation Shortcut: Click to simulate the Seller opening that email link:")
         if st.button("👉 Simulate Seller Clicking Email URL Link"):
             st.session_state.simulated_query_param = st.session_state.active_drop_token
             st.rerun()
 
-# --- 5. BARE UN-AUTHENTICATED SELLER DROP BOX INTERFACE OVERLAY ---
 if "simulated_query_param" in st.session_state and st.session_state.simulated_query_param != "":
     current_token = st.session_state.simulated_query_param
-    
     if current_token == st.session_state.get("active_drop_token") and not st.session_state.get("token_used", False):
         st.empty() 
         st.markdown("---")
         st.title("📥 Secure Document Drop Box Terminal")
         st.write(f"Authorized Node Workspace Profile Link ID: `{current_token}`")
         st.caption(f"Linked Transaction Reference: **{st.session_state.token_trade_target}**")
-        st.warning("🔒 Confidential: You do not need a password. This secure file gateway authorizes your upload directly.")
+        st.warning("🔒 Confidential: This secure file gateway authorizes your upload directly.")
 
         with st.form("public_seller_drop_box_form"):
             st.markdown("### **📤 Ingest Official Verification Assets**")
-            st.write("Please drop your official third-party Certificate of Inspection PDF file below to update the lender:")
             uploaded_inspection_file = st.file_uploader("Select Certificate of Inspection (PDF/JSON Data Format)", type=["pdf", "json"])
             submit_upload = st.form_submit_button("Verify & Finalize Document Ingress", use_container_width=True)
-            
             if submit_upload and uploaded_inspection_file is not None:
                 st.session_state.token_used = True
                 st.session_state.simulated_query_param = "" 
-                
                 for trade in st.session_state.trade_ledger:
                     if trade["trade_id"] == st.session_state.token_trade_target:
                         trade["escrow_status"] = " PENDING AUTOMATED CROSS-CHECK"
                 st.balloons()
-                st.success("🎉 Success! Your Certificate of Inspection has been securely ingested into the platform's verification array.")
-                time.sleep(2)
+                st.success("🎉 Success! Your Certificate of Inspection has been securely ingested into the platform array.")
+                time.sleep(1)
                 st.rerun()
         st.stop()
-# ==============================================================================
-# 💎 LAYER 1 VIEW ORCHESTRATOR: PORTAL CONTROL ROOM (SECTION 3 OF 3)
-# ==============================================================================
-# Paste this final block at the absolute end of app.py. It connects logistics
-# trackers and executes your automated Layer 3 multi-source audit matrices.
-# ==============================================================================
+# app.py (Section 3 of 3)
 
-# --- 6. SECTION 3: AUTOMATED INGESTION LAYER (THE BUYER LAYER) ---
+# --- SECTION 3: AUTOMATED INGESTION LAYER (THE BUYER LAYER) ---
 st.divider()
 st.subheader("🏢 Section 3: Day 0 Automated Parameter Ingestion")
 st.write("Bypass manual counterparty data entry. Initialize a trade contract parameter check to trigger automated background LEI validation.")
@@ -295,7 +282,7 @@ if submit_ingestion:
         time.sleep(1)
         st.rerun()
 
-# --- 7. SECTION 4: OCEAN CARRIER API INTEGRATION (THE LOGISTICS LAYER) ---
+# --- SECTION 4: AUTOMATED OCEAN CARRIER API WEBHOOK GATEWAY ---
 st.divider()
 st.subheader("🚢 Section 4: Automated Ocean Carrier API Webhook Gateway")
 st.write("Simulate server-to-server middleware webhooks. This removes human broker entry by tracking containers directly from carrier networks.")
@@ -309,7 +296,7 @@ col_ship_1, col_ship_2 = st.columns([1.2, 2])
 
 with col_ship_1:
     st.markdown("#### **Simulate Webhook Trigger**")
-    selected_tracking_id = st.selectbox("Select Target Container Pipeline To Ping:", options=[t["trade_id"] for t in st.session_state.trade_ledger], key="carrier_api_select_box")
+    selected_tracking_id = st.selectbox("Select Active Container Pipeline To Ping:", options=[t["trade_id"] for t in st.session_state.trade_ledger], key="carrier_api_select_box")
     trigger_webhook = st.button(" Ingest Automated Carrier Webhook Payload", use_container_width=True)
 
 if trigger_webhook:
@@ -325,7 +312,7 @@ if trigger_webhook:
                 if trade["trade_id"] == selected_tracking_id:
                     if telemetry_payload["system_alert_flags"] == "BIOLOGICAL_HUMIDITY_ALERT":
                         trade["escrow_status"] = "🚨 LOCKED / BIOLOGICAL ANOMALY DETECTED"
-                        trade["vessel_imo"] = "IMO9999999" # Map to trigger Layer 3 dark fleet penalties
+                        trade["vessel_imo"] = "IMO9999999" 
                         st.error(f"❌ **Risk Flag Raised:** Biological anomaly detected on Container {telemetry_payload['container_id']}. Escrow lock engaged automatically.")
                     else:
                         trade["escrow_status"] = "🚢 EN-ROUTE / TELEMETRY NORMAL"
@@ -341,27 +328,17 @@ if trigger_webhook:
             st.success("New default carrier tracking stream established.")
             time.sleep(1)
             st.rerun()
-# ==============================================================================
-# 💎 LAYER 1 VIEW ORCHESTRATOR: PORTAL CONTROL ROOM (SECTION 3 OF 3 REVISED)
-# ==============================================================================
-# Refactored to eliminate static, hardcoded data strings. Implements dynamic
-# weight calculations, an async timeline telemetry simulator, and reactive logic gates.
-# ==============================================================================
-import asyncio
-import streamlit as st
 
+# --- SECTION 5: COMPLIANCE & WATERFALL RELEASE MATRIX CONTROL PANEL ---
 st.divider()
 st.subheader("⚖️ Step 5: Master Compliance & Financial Payout Waterfall")
 
-# --- 1. INTERACTIVE PARAMETER ADJUSTMENT MATRIX ---
 st.markdown("#### 🛠️ Real-Time Telemetry Controls")
-st.caption("Alter these parameters to test true mathematical validations instead of hardcoded strings.")
-
 col_sim_1, col_sim_2, col_sim_3 = st.columns(3)
 with col_sim_1:
     matrix_selection = st.radio(
-        "Financial Vector Profile Matrix:",
-        ["Scenario A: Direct Buyer-to-Seller Matrix", "Scenario B: Private Lender Advance Facility Matrix"],
+        "Financial Vector Profile Matrix Selection:",
+        ["Scenario A: Direct Buyer-to-Seller Matrix", "Scenario B: Private Lender Capital Advance Matrix"],
         key="financial_matrix_vector_radio_key"
     )
 with col_sim_2:
@@ -377,36 +354,15 @@ with col_sim_3:
         key="sim_ofac_sanctions_force_toggle"
     )
 
-# --- 2. ASYNCHRONOUS PIPELINE VALIDATION ENGINE ---
 async def simulate_background_registry_verification():
-    """
-    Simulates asynchronous, non-blocking third-party API lookups.
-    Yields control safely to the main event loop for free concurrent processing.
-    """
-    await asyncio.sleep(1.0)  # Free simulation of network lag
-    return {
-        "ofac_sanctions_match": simulate_sanctions,
-        "ubo_verified": True  # Connects back to the FinCEN rules matrix
-    }
+    await asyncio.sleep(0.5)
+    return {"ofac_sanctions_match": simulate_sanctions, "ubo_verified": True}
 
-# --- 3. SCENARIO PROFILE MATRICES INGESTION CONSTRUCTOR ---
-ingestion_vector = st.radio(
-    "Choose Ingestion Input Processing Vector:", 
-    ["Use Sandbox Scenario Profiles (Dynamic Simulation)", "Custom Ad-hoc Input Text Area (Live Ingestion Mode)"], 
-    horizontal=True, 
-    key="master_eval_ingest_radio"
-)
-
+ingestion_vector = st.radio("Choose Ingestion Input Processing Vector:", ["Use Sandbox Scenario Profiles (Dynamic Simulation)", "Custom Ad-hoc Input Text Area (Live Ingestion Mode)"], horizontal=True, key="master_eval_ingest_radio")
 active_extracted_payload = None
 
 if "Profiles" in ingestion_vector:
-    profile = st.selectbox(
-        "Select a Target Pre-Shipment Escrow Transaction File Profile:", 
-        ["Select a folder profile...", 
-         "Folder Profile 01: Standard Arabica Coffee Trade - Dynamic Telemetry Ingress", 
-         "Folder Profile 02: Dual-Use Transit Freight - Suspicious Corporate Identity Track", 
-         "Folder Profile 03: Heavy Sourcing Sacks Route - Logistics Variance Route Track"]
-    )
+    profile = st.selectbox("Select a Target Pre-Shipment Escrow Transaction File Profile:", ["Select a folder profile...", "Folder Profile 01: Standard Arabica Coffee Trade - Dynamic Telemetry Ingress", "Folder Profile 02: Dual-Use Transit Freight - Suspicious Corporate Identity Track", "Folder Profile 03: Heavy Sourcing Sacks Route - Logistics Variance Route Track"])
     if "Coffee" in profile:
         active_extracted_payload = {"buyer_lei": "LEI-US-550912834", "seller_lei": "LEI-CO-110293847", "ein_number": "12-4455667", "vessel_imo": "IMO1234567", "hs_code": "0901.11", "value": 1250000.00}
     elif "Dual-Use" in profile:
@@ -417,86 +373,20 @@ else:
     live_input_text = st.text_area("Interactive Ad-hoc Text Entry Window:", value="Draft: Buyer LEI-US-550912834, Seller LEI-CO-110293847, EIN: 12-4455667, Vessel IMO1234567, HS Code: 0901.11, Value: 500000")
     if st.button("🔮 Step 1: Trigger Live Gemini Text Extraction Layer"):
         with st.spinner("🤖 Requesting Gemini..."):
-            # Preserves your historical nomenclature hooks
             active_extracted_payload = extract_variables_from_text_with_gemini(live_input_text)
             st.session_state.ad_hoc_cache = active_extracted_payload
 
 if "ad_hoc_cache" in st.session_state and "Custom Ad-hoc" in ingestion_vector:
     active_extracted_payload = st.session_state.ad_hoc_cache
 
-# --- 4. THE LIVE SEPARATION-OF-CONCERNS COMPLIANCE GATEWAY ---
 if active_extracted_payload:
-    if st.button("🔥 Run Comprehensive Layer 3 Matrix Audit", use_container_width=True, key="run_sop_master_audit_btn"):
-        
-        # Access your global configurations safely
+    if st.button("🔥 Run Comprehensive Layer 3 Matrix Audit", width="stretch", key="run_sop_master_audit_btn"):
         target_hs = active_extracted_payload.get("hs_code", "0901.11")
-        hs_metadata = HS_RULEBOOK.get(target_hs, {"commodity": "Unknown", "max_variance_pct": 1.0})
+        hs_metadata = HS_RULEBOOK.get(target_hs, {"commodity": "Unknown Cargo Profile", "max_variance_pct": 1.0})
         
         c1, c2 = st.columns(2)
         with c1:
             st.write("### 🤖 Compliance Pipeline Ingestion Logs")
-            
-            # Dynamic Step 1 & 2 Execution UI Feedback
             console_msg = st.empty()
-            console_msg.info("⏳ Initializing pipeline. Triggering asynchronous background entity checks...")
+            console_msg.info("⏳ Initializing pipeline asynchronous checks...")
             
-            # Native Python asynchronous loop invocation
-            api_telemetry = asyncio.run(simulate_background_registry_verification())
-            
-            # A. GOVERNING IDENTITY CHECK (True code validation instead of a hardcoded string)
-            if api_telemetry["ofac_sanctions_match"]:
-                console_msg.error("🛑 GOVERNING GATE EXCLUSION: Counterparty matched active international sanction watch list [OFAC 31 CFR Chapter V].")
-                st.error("🛑 DISBURSEMENT PROHIBITED: Compliance gateway has locked calculation execution loops due to identity risk.")
-                st.stop()
-            
-            # B. LOGISTICS WEIGHT VARIANCE CALCULATION
-            # Target base weight is 100 Tons for these specific transaction simulations
-            target_base_weight = 100.0
-            weight_deviation = abs(input_actual_weight - target_base_weight)
-            max_allowed_variance = target_base_weight * (hs_metadata["max_variance_pct"] / 100.0)
-            
-            if weight_deviation > max_allowed_variance:
-                console_msg.error(f"🛑 CLIENT LIQUIDITY LOCK: Bill of Lading weight deviation ({weight_deviation:.2f} Tons) exceeds the max allowed {hs_metadata['max_variance_pct']}% threshold ({max_allowed_variance:.2f} Tons) for {hs_metadata['commodity']}.")
-                st.error("🛑 DISBURSEMENT PROHIBITED: Compliance gateway has engaged a hard liquidity lock due to cargo mismatch.")
-                st.stop()
-            
-            # If internal sanity gates clear, safely hand the telemetry payload down to Layer 3
-            console_msg.success("✨ Local middleware filters clear. Transferring payload array to Layer 3 Core Logic...")
-            verdict = process_escrow_sop_pipeline(active_extracted_payload, matrix_selection)
-            
-            for log in verdict["logs"]:
-                if "SOP" in log or "ASSESSOR" in log: st.info(log)
-                elif "🛑" in log or "CRITICAL" in log: st.error(log)
-                elif "⚠️" in log: st.warning(log)
-                else: st.success(log)
-
-        with c2:
-            st.write("### 🧮 Cash Distribution Settlement Matrix")
-            w = verdict["waterfall"]
-            if verdict["approved"]:
-                st.success("🎉 FIDUCIARY CLEARANCE GRANTED: ACCOUNT SAFE TO RECONCILE")
-                
-                # Natively calculates the dynamic data streams passed back from core_engine.py
-                if "Scenario A" in matrix_selection:
-                    st.markdown("#### **Scenario A: Direct Seller Disbursement Splits**")
-                    st.metric("Net Remainder Seller Payout", f"${w['net_seller_payout']:,.2f}", delta=f"Freight Audited: {input_actual_weight} Tons")
-                    st.write(f"• **Gross Funding Captured:** ${w['gross_funding_capture']:,.2f}")
-                    st.write(f"• **Logistics Transit Base Surcharge:** -${w['logistics_costs']:,.2f}")
-                    st.write(f"• **Third-Party Lab Inspection:** -${w['inspection_fees']:,.2f}")
-                    st.write(f"• **Escrow Agency Fee:** -${w['escrow_service_fee']:,.2f}")
-                    st.write(f"• **HS Code Risk Reserve Holdback:** -${w['hs_risk_penalty_reserve']:,.2f}")
-                else:
-                    st.markdown("#### **Scenario B: Private Lender Advance Splits**")
-                    st.metric("Net Capital Advance Amount", f"${w['private_lender_advance_amount']:,.2f}", f"Risk LTV advance Rate: {w['base_loan_to_value_rate'] * 100:.1f}%")
-                    st.write(f"• **Lender Interest Reserve Lock:** ${w['accrued_interest_holdback_lock']:,.2f}")
-                    st.write(f"• **Lender Facility Processing Fee:** ${w['lender_facility_fees']:,.2f}")
-                    st.write(f"• **Escrow Agency Processing Fee:** ${w['escrow_processing_fee']:,.2f}")
-                    st.write(f"• **Remaining Seller Payout Spread:** ${w['net_seller_payout']:,.2f}")
-                
-                st.markdown("---")
-                st.caption("🔓 Manual Post-Disbursement Verification Checklist [SOP Steps 5-7]:")
-                st.checkbox("🟩 SOP Step 5: Customs Clearance logged under declared HS Code.", value=True, key="cbp_clear_box")
-                st.checkbox("⬜ SOP Step 6: Individual Escrow Ledger balances to exactly $0.00.", value=False, key="zero_balance_box")
-                st.checkbox("⬜ SOP Step 7: Immutable Archival Profile package locked for 5 years.", value=False, key="archive_box")
-            else:
-                st.error("🛑 DISBURSEMENT PROHIBITED: Compliance gateway has locked calculation execution loops.")
