@@ -13,7 +13,7 @@ import time
 import asyncio
 
 # Synchronized middleware layer imports targeting your active Layer 3 core files
-from core_engine import process_escrow_sop_pipeline, REGULATORY_MASTER_MAP
+from core_engine import execute_sequential_phase_loops, REGULATORY_MASTER_MAP
 from ai_extractor import extract_variables_from_text_with_gemini
 
 # Global Baseline HS Rule Book Layer Reference Configuration Mapping
